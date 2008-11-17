@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"	
+	label="User Rights" 
+	xmlns:ns="fr.semantic_learning.semquiz.utils.*"
+	creationComplete="init();" width="892" height="488">
+	<mx:Script>
+		<![CDATA[
+			import fr.semantic_learning.semquiz.forms_actionscript.FormsInterfaceRights;
+			import fr.semantic_learning.semquiz.valueobjects.StructureGroups;
+		]]>
+	</mx:Script>
+	
+	<mx:Script source="../../forms_actionscript/admin/ManageRights.as" />
+	
+	<mx:List
+		id="users"
+		buttonMode="true"
+		allowMultipleSelection="false"
+		labelFunction="setUsersLabel"
+		change="getRightsForUser()"
+		width="228" height="368" y="28"/>
+	<mx:List
+		id="currentrights"		 
+		buttonMode="true"
+		dropEnabled="false" 
+		dragEnabled="true" 
+		dragMoveEnabled="true" 
+		allowMultipleSelection="true"				
+		width="228" height="231" y="165" x="250"/>
+	<ns:DragSelectList
+		id="status"		 
+		buttonMode="true"
+		dropEnabled="true" 
+		dragEnabled="true" 
+		dragMoveEnabled="true" 
+		allowMultipleSelection="true"	
+		labelFunction="setRightsLabel"
+		itemRenderer="fr.semantic_learning.semquiz.utils.CheckBoxControlList"		
+		width="228" height="101" y="28" x="250"/>
+	<ns:DragSelectList
+		id="rights"		 
+		buttonMode="true"
+		dropEnabled="true" 
+		dragEnabled="true" 
+		dragMoveEnabled="true" 
+		allowMultipleSelection="true"	
+		labelFunction="setRightsLabel"
+		itemRenderer="fr.semantic_learning.semquiz.utils.CheckBoxControlList"
+		width="228" height="368" y="28" x="496.7"/>		
+	<mx:Label text="Select users"/>
+	<mx:Label x="250" text="Current rights" y="137"/>
+	<mx:Label x="250" text="New rights" y="0"/>
+	<mx:Label x="496.65" text="Rights"/>
+	<mx:Button x="741" y="29" label="Set Rights For User" click="sendRightsForUser()"/>
+</mx:Canvas>

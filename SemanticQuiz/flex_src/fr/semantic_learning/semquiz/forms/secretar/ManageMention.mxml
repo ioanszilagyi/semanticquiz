@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="Mention"
+	initialize="init();">
+	
+	<mx:Script>
+		<![CDATA[
+			import fr.semantic_learning.semquiz.valueobjects.StructureFormation;
+			import fr.semantic_learning.semquiz.valueobjects.StructureUser;
+			import fr.semantic_learning.semquiz.valueobjects.StructureMention;
+			
+			
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import fr.semantic_learning.semquiz.CentralComm;
+		import fr.semantic_learning.events.EventCommandFlex;
+		import mx.controls.Alert;
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import mx.managers.CursorManager;
+		import mx.core.Application;
+		
+		
+			
+		public function init():void
+		{
+			CentralComm.app = Application.application as main;
+			this.addEventListener(AllCommands.RETURN_MENTIONS, manageEventMention);
+			this.addEventListener(AllCommands.SELECT_USER, manageEventResp);
+			this.addEventListener(AllCommands.SELECT_FORMATION, manageEventFormation);
+			
+		}
+		
+		public function getFormation():void
+		{
+			
+			if(formationTextInput.text == "Search Formation")
+			{
+				formationTextInput.text = "";
+				formationTextInput.setFocus();
+			}
+			
+			var getFormation:StructureFormation = new StructureFormation(formationTextInput.text);
+			
+			var getFormationEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_FORMATION, getFormation);
+			
+			CentralComm.app.dispatchEvent(getFormationEvent);
+			
+		}
+		
+		public function getResp():void
+		{
+			if(responsableTextInput.text == "Search Responsable")
+			{
+				responsableTextInput.text = "";
+				responsableTextInput.setFocus();
+			}
+			
+			var getResp:StructureUser = new StructureUser();
+			getResp.role = "Professor";
+			getResp.familyName = responsableTextInput.text;
+			getResp.givenName = responsableTextInput.text;
+			
+			var getRespEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_USER, getResp);
+			CentralComm.app.dispatchEvent(getRespEvent);
+		}
+		
+		
+		public function getMentions():void
+		{
+			var getMentionsEvent:EventCommandFlex = new EventCommandFlex(AllCommands.GET_MENTIONS, "MyMentions");
+			CentralComm.app.dispatchEvent(getMentionsEvent);
+			CursorManager.setBusyCursor();			
+		}
+		
+		public function addNewMention(title:String):void
+		{
+			var newMention:StructureMention = new StructureMention(title);
+			
+			newMention.idResp = responsableList.selectedItem.id;
+			newMention.idFormation = formationList.selectedItem.id;
+			
+			
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_MENTION ,newMention);
+			CentralComm.app.dispatchEvent(event);
+			
+			//infoText.text = newMention.cod+";\n"+newMention.title; 
+		}
+		
+		public function manageEventMention(event:EventCommandFlex):void
+		{
+			var arrMentions:Array = new Array();
+			arrMentions = event.args as Array;
+			//infoText.text += arrMentions.toString();
+			CursorManager.removeBusyCursor();
+			
+		}
+		public function manageEventResp(event:EventCommandFlex):void
+		{
+			//Alert.show("a venit user in manage mention!");
+			var arrResp:Array = new Array();
+			arrResp = event.args as Array;
+			//infoText.text += arrMentions.toString();
+			CursorManager.removeBusyCursor();
+			//Alert.show(event.args.length.toString());
+			//Alert.show(arrResp.length.toString());
+			responsableList.dataProvider = arrResp;
+			
+		}
+		public function manageEventFormation(event:EventCommandFlex):void
+		{
+			var arrFormation:Array = new Array();
+			arrFormation = event.args as Array;
+			CursorManager.removeBusyCursor();
+			//Alert.show(event.args.length.toString());
+			formationList.dataProvider = arrFormation;
+		}
+		
+		public function getLabelUser(user:StructureUser):String
+		{
+			return user.familyName;
+		}
+		public function getLabelFormation(formation:StructureFormation):String
+		{
+			return formation.title;
+		}
+		
+		public function setResponsable():void
+		{
+			setResponsableText.text = responsableList.selectedItem.familyName;
+		}
+		public function setFormation():void
+		{
+			setFormationText.text = formationList.selectedItem.title;
+		}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:TextInput x="77" y="63" text="Title" id="titleSpecializationTextInput"/>
+	<mx:List x="402" y="62" width="180" height="114" id="formationList" labelFunction="getLabelFormation" click="setFormation()"></mx:List>
+	<mx:TextInput x="274" y="63" width="120" text="Search Formation" id="formationTextInput"/>
+	<mx:TextInput x="265" y="235" width="127" text="Search Responsable" id="responsableTextInput"/>
+	<mx:List x="400" y="234" width="180" height="114" id="responsableList" labelFunction="getLabelUser" click="setResponsable();"></mx:List>
+	<mx:Button x="77" y="110" label="Add Mention" click="addNewMention(titleSpecializationTextInput.text)" id="addNewMentionBtn"/>
+	<mx:Text x="321" y="23" text="Formation:"/>
+	<mx:Button x="280" y="93" label="Get Formations" id="formationBtn" click="getFormation()"/>
+	<mx:Button x="271" y="265" label="Get Responsable" id="responsableBtn" click="getResp()"/>
+	<mx:Text x="306" y="197" text="Responsable"/>
+	<mx:Text x="400" y="197" text="Select a responsable" width="162" id="setResponsableText"/>
+	<mx:Text x="402" y="23" text="Select a formation" width="160" id="setFormationText"/>
+		
+	
+</mx:Canvas>

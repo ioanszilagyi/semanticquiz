@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" showCloseButton="true" layout="absolute" width="250" height="150" title="Help" borderThickness="14" borderColor="#7FA5B9" cornerRadius="0">
+	<mx:Label text="This is a demo version..." horizontalCenter="2" verticalCenter="-10"></mx:Label>
+	<mx:Script>
+		<![CDATA[
+			import mx.managers.PopUpManager;
+		]]>
+	</mx:Script>
+	<mx:Button click="PopUpManager.removePopUp(this)" x="170" y="78" label="Ok" width="50" fontFamily="Arial" fontWeight="bold" fontSize="10"/>
+	<mx:HRule x="9" y="66" width="210" height="6"/>
+</mx:TitleWindow>

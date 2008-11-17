@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:forms="fr.semantic_learning.semquiz.forms.prof.question_types.*"
+	label="Create Question" creationComplete="init();">
+	
+	<mx:Script>
+	<![CDATA[
+		import fr.semantic_learning.semquiz.valueobjects.StructureEvaluationType;
+		import fr.semantic_learning.semquiz.valueobjects.StructureCompetence;
+		import fr.semantic_learning.semquiz.valueobjects.StructureSubsection;
+		import fr.semantic_learning.semquiz.valueobjects.StructureUnits;
+	//import flash.sampler.NewObjectSample;
+	import fr.semantic_learning.semquiz.commands.AllCommands;
+	import fr.semantic_learning.semquiz.CentralComm;
+	import mx.core.Container;
+	import mx.controls.*;
+	import fr.semantic_learning.semquiz.utils.*;
+	import mx.core.Application;
+	import fr.semantic_learning.events.*;
+	
+
+	
+	public function init():void
+		{
+			CentralComm.app = Application.application as main;			
+			this.addEventListener(AllCommands.UPLOAD_COMPLETE, manageEvent);
+			this.addEventListener(AllCommands.SELECT_SECTION, manageEvent);
+			this.addEventListener(AllCommands.SELECT_COMPETENCE, manageEvent);
+			this.addEventListener(AllCommands.SELECT_SUBSECTION, manageEvent);
+			this.addEventListener(AllCommands.SELECT_UNIT, manageEvent);
+			this.addEventListener(AllCommands.SELECT_EVALUATIONTYPE, manageEvent); 
+			this.addEventListener(AllCommands.NEW_FILEUPTIP, manageEvent); 
+			//CentralComm.app.homeBtnBar.dataProvider = profStack ;
+			//sendev();
+						
+		}
+		public function sendev():*{ 
+		var event:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_UNIT,new StructureUnits());
+			CentralComm.app.dispatchEvent(event);
+			event = new EventCommandFlex(AllCommands.SELECT_SUBSECTION, new StructureSubsection());
+			CentralComm.app.dispatchEvent(event);
+			event = new EventCommandFlex(AllCommands.SELECT_COMPETENCE,new StructureCompetence());
+			CentralComm.app.dispatchEvent(event);
+			event = new EventCommandFlex(AllCommands.SELECT_EVALUATIONTYPE,new StructureEvaluationType());
+			CentralComm.app.dispatchEvent(event);         
+		}
+		
+		
+		
+	public function manageEvent(event:EventCommandFlex):*{ 
+		//Alert.show(event.command);
+		 questionType.selectedChild.dispatchEvent(new EventCommandFlex(event.command, event.args));
+		 		 
+      	if(event.command == AllCommands.SELECT_SUBSECTION) 
+      	{ 
+         cbb_subsection.dataProvider = event.args as Array;         
+        }                
+        if(event.command == AllCommands.SELECT_UNIT) 
+      	{ 
+         cbb_unit.dataProvider = event.args as Array;
+        }        
+        if(event.command == AllCommands.SELECT_EVALUATIONTYPE) 
+      	{ 
+         cbb_evaltype.dataProvider = event.args as Array;
+        }         
+        if(event.command == AllCommands.SELECT_COMPETENCE) 
+      	{ 
+         lst_competence.dataProvider = event.args as  Array;
+        }             
+      }
+		
+	public function change_view(screen:String) :*
+ 		{ 			
+ 			switch(screen)
+ 			{
+ 				case "back":
+ 					 questionType.selectedChild = home;
+ 					 btn_back.visible = false;
+					//CentralComm.app.workflowState = AllCommands.HOME_PROF;
+					break;
+ 				case "Multiple Choice": 	
+ 				if(CheckCompleted()==true)
+				{			
+					questionType.selectedChild = multipleCh;					
+					btn_back.visible = true;
+					HomeProfData.question_type = "multipleCh";
+				}
+					//CentralComm.app.workflowState = AllCommands.CREATE_MULTIPLECH;
+					break;
+				case "Single Choice":
+				if(CheckCompleted()==true)
+				{
+					questionType.selectedChild = singleCh;
+					btn_back.visible = true; 
+					HomeProfData.question_type = "singleCh";
+				}				
+					//CentralComm.app.workflowState = AllCommands.CREATE_SINGLECH;
+					break;
+				case "True False":
+				if(CheckCompleted()==true)
+				{
+					questionType.selectedChild = trueFalse;
+					btn_back.visible = true; 
+					HomeProfData.question_type = "trueFalse";	
+				}			
+					//CentralComm.app.workflowState = AllCommands.CREATE_SINGLECH;
+					break;					
+				default:
+				Alert.show(screen);		 
+ 			}		
+ 		} 
+ 		public function CheckCompleted():Boolean
+ 		{
+ 			var cancont:Boolean = true;
+ 			var msg:String = "You must complete the following data:" + "\r\n";
+ 			if(HomeProfData.selected_subsection==null){
+ 				msg+="subsection" + "\r\n";
+ 				cancont=false;
+ 			}
+ 			if(HomeProfData.selected_unit==null){
+ 				msg+="unit" + "\r\n";
+ 				cancont=false;
+ 			} 
+ 			if(HomeProfData.selected_competence.length<1){
+ 				msg+="competence" + "\r\n";
+ 				cancont=false;
+ 			} 
+ 			if(HomeProfData.evaluation_type==null){
+ 				msg+="evaluation type" + "\r\n";
+ 				cancont=false;
+ 			} 
+ 			if((HomeProfData.response_time==null) || (HomeProfData.response_time=="")){
+ 				msg+="response time" + "\r\n";
+ 				cancont=false;
+ 			} 
+ 			if(cancont==false){
+ 				Alert.show(msg);
+ 			}
+ 			return cancont;  			
+ 		}		
+	
+ 		public function cbb_subs_change() :*
+ 		{
+ 		HomeProfData.selected_subsection = (cbb_subsection.selectedItem as StructureSubsection).id
+ 		//Alert.show(HomeProfData.selected_subsection);
+ 		}
+ 		public function cbb_unit_change() :*
+ 		{
+ 		HomeProfData.selected_unit = (cbb_unit.selectedItem as StructureUnits).id
+ 		//Alert.show(HomeProfData.selected_unit);
+ 		}
+ 		public function cbb_comp_change() :*
+ 		{
+ 			HomeProfData.selected_competence = new Array();
+ 			for(var i:int=0; i<lst_competence.selectedItems.length; i++){   
+ 				HomeProfData.selected_competence.push((lst_competence.selectedItems[i] as StructureCompetence).id);
+ 				//Alert.show((lst_competence.selectedItems[i] as StructureCompetence).id);
+ 			}
+ 		
+ 		}
+ 		public function cbb_eval_change() :*
+ 		{
+ 		HomeProfData.evaluation_type = (cbb_evaltype.selectedItem as StructureEvaluationType).id
+ 		//Alert.show(HomeProfData.evaluation_type);
+ 		}
+ 		public function txt_response_change() :*
+ 		{
+ 		HomeProfData.response_time = txt_responsetime.text; 		
+ 		}
+ 		
+ 		public function getLabelS(item:StructureSubsection):String
+		{
+			return item.title;
+			
+		} 
+		public function getLabelC(item:StructureCompetence):String
+		{
+			return item.title;
+			
+		} 
+		public function getLabelE(item:StructureEvaluationType):String
+		{
+			return item.title;
+			
+		} 
+		public function getLabelU(item:StructureUnits):String
+		{
+			return item.title;
+			
+		} 					
+ 			
+ 	]]>
+	</mx:Script>
+	<mx:VBox height="100%">	
+	<mx:ViewStack id="questionType" resizeToContent="true" creationPolicy="all">	
+	<mx:Canvas id="home">		
+	<mx:Label x="10" y="8" text="Create Questions" fontSize="18" height="31"/>
+	<mx:ComboBox x="125" y="40" width="176" id="cbb_subsection" prompt="select subsection" change="cbb_subs_change();" labelFunction="getLabelS"></mx:ComboBox>
+	<mx:Label x="14" y="40" text="Subsection"/>
+	<mx:Label x="10" y="218" text="Question type"/>
+	<mx:Label x="309" y="41" text="Competence"/>
+	<mx:Label x="14" y="124" text="Response time"/>
+	<mx:TextInput x="125" y="124" width="113" id="txt_responsetime" restrict="0-9" change="txt_response_change();" backgroundColor="#B8C3C9"/>
+	<mx:Label x="246" y="124" text="minutes"/>
+	<mx:ComboBox x="125" y="68" width="176" id="cbb_unit" prompt="select unit" change="cbb_unit_change();" labelFunction="getLabelU"></mx:ComboBox>
+	<mx:Label x="14" y="68" text="Unit"/>
+	<mx:ComboBox x="125" y="96" width="176" id="cbb_evaltype" prompt="select evaluation type" change="cbb_eval_change();" labelFunction="getLabelE"></mx:ComboBox>
+	<mx:Label x="14" y="96" text="Evaluation type"/>
+	<mx:ToggleButtonBar id="togglebtn" x="112" y="225" direction="vertical" itemClick="change_view(String(event.item))">
+	 <mx:dataProvider>
+         <mx:Array>
+           <mx:String>Multiple Choice</mx:String>
+           <mx:String>Single Choice</mx:String>
+           <mx:String>True False</mx:String>           
+         </mx:Array>
+     </mx:dataProvider>
+	</mx:ToggleButtonBar>
+	<mx:List x="401" y="40" id="lst_competence" allowMultipleSelection="true" change="cbb_comp_change();" labelFunction="getLabelC" backgroundColor="#B8C3C9"></mx:List>
+	
+		</mx:Canvas>
+		<forms:multipleCh id="multipleCh"/>
+		<forms:singleCh id="singleCh"/>
+		<forms:trueFalse id="trueFalse"/>
+		
+	</mx:ViewStack>
+	
+	<mx:Button label="back" id="btn_back" visible="false" click="change_view('back');" />
+		</mx:VBox>
+</mx:Canvas>

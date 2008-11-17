@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	label="Informations" creationComplete="init()" >
+	
+	<mx:Script source="../../forms_actionscript/student/StudentInformations.as" />
+		
+	<mx:Label x="10" y="10" text="Pending Quizes"/>
+	<mx:List id="pendingQuizList" x="10" y="38" width="158" height="266" labelFunction="setQuizLabel" />
+	<mx:Button x="176" y="39" label="Run Selected" click="RunSelected()"/>
+</mx:Canvas>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:forms="fr.semantic_learning.semquiz.forms.admin.*"
+	label="Administrate"
+	creationComplete="init();">
+
+	<mx:Script>
+	<![CDATA[
+		import fr.semantic_learning.semquiz.valueobjects.StructureInterfaceRights;
+		import fr.semantic_learning.semquiz.valueobjects.StructureCompetence;
+		import fr.semantic_learning.semquiz.valueobjects.StructureSubsection;
+		import fr.semantic_learning.semquiz.valueobjects.StructureUser;
+		import fr.semantic_learning.semquiz.CentralComm;
+		import fr.semantic_learning.events.EventCommandFlex;
+		import mx.controls.Alert;
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import mx.managers.CursorManager;
+		
+		public function init():void
+		{
+			//CentralComm.app.homeBtnBar.dataProvider = adminStack;
+			this.addEventListener(AllCommands.SELECT_SUBSECTION, manageEvent);
+			this.addEventListener(AllCommands.NEW_USER, manageEvent);
+			this.addEventListener(AllCommands.SELECT_USER, manageEvent);
+			this.addEventListener(AllCommands.SELECT_RIGHTS, manageEvent);
+			this.addEventListener(AllCommands.SELECT_ALL_RIGHTS, manageEvent);
+		}
+		
+		public function manageEvent(event:EventCommandFlex):void 
+		{
+			//Alert.show(event.command.toString());
+			adminStack.selectedChild.dispatchEvent(new EventCommandFlex(event.command, event.args));
+		}
+		
+					
+		private function onChange():void {			
+			if (adminStack.selectedIndex == 2) {
+				// go to User Rights and 
+				// bring all the users
+				var event:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_USER, new StructureUser());
+				CentralComm.app.dispatchEvent(event);
+				
+				// bring all Rights
+				event = new EventCommandFlex(AllCommands.SELECT_ALL_RIGHTS, new StructureInterfaceRights());
+				CentralComm.app.dispatchEvent(event);
+			}
+		}
+	]]>
+	</mx:Script>
+
+	<mx:ViewStack id="adminStack" resizeToContent="true" creationPolicy="all" change="onChange()">	
+		<mx:Canvas id="home">
+			<mx:Label text="Access Deny!"/>	
+		</mx:Canvas>		
+		<forms:ManageUsers id="adminManageUsers"/>
+		<forms:ManageRights id="adminManageRights"/>
+		<forms:ManageSettings id="adminManageSettings"/>
+	</mx:ViewStack>
+	
+</mx:Canvas>

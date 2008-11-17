@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="Login Form"
+	creationComplete="init();">
+
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import fr.semantic_learning.semquiz.valueobjects.StructureInterfaceRights;
+			import mx.core.Application;
+			import mx.collections.ArrayCollection;
+			import fr.semantic_learning.events.*;
+			import fr.semantic_learning.semquiz.valueobjects.StructureUser;
+			import fr.semantic_learning.semquiz.CentralComm;
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			
+			private function init():void
+			{
+				CentralComm.app = Application.application as main;
+				this.addEventListener(AllCommands.LOGIN_RESPONSE, authenticate);
+				this.addEventListener(AllCommands.LOGIN_RIGHTS, setRightsForUser);
+				CentralComm.app.appSignOutBtn.visible = false;
+				userNameInput.setFocus();
+			}
+			
+			private function login():void
+			{
+				var loginVO:StructureUser = new StructureUser(userNameInput.text, passwordInput.text);
+				
+				var event:EventCommandFlex = new EventCommandFlex(AllCommands.LOGIN_REQUEST, loginVO);
+				CentralComm.app.dispatchEvent(event);
+			}
+
+			private function authenticate(event:EventCommandFlex):void
+			{
+				CentralComm.currentUser = event.args as StructureUser; 
+			
+				if (CentralComm.currentUser.isAuthenticated)
+				{					
+					var event:EventCommandFlex = new EventCommandFlex(AllCommands.LOGIN_RIGHTS, CentralComm.currentUser.id);
+					CentralComm.app.dispatchEvent(event);							
+				} else {
+					//faultEffect.end();
+					faultEffect.play();
+					passwordInput.text = "";
+					userNameInput.text = "";
+					CentralComm.app.appStatusText.text = "Username and pasword do not match!";
+					userNameInput.setFocus();
+				}
+			}
+			
+			private function setRightsForUser(event:EventCommandFlex):void {	
+				try {
+					CentralComm.setAllRightsToFalse();
+				
+					for each (var item:StructureInterfaceRights in event.args) {
+						switch (item.idInterface) {
+							case "FIR_ADMI_USERS":
+								if (item.isAllowed) {
+									// ManageUsers 
+									// is 0
+									//CentralComm.rightsUserAdmin.push(CentralComm.app.homeAdmin.adminManageUsers);
+									CentralComm.rightsUserAdmin = true;	
+								} 		
+							break;
+							case "FIR_ADMI_USERS_DELETE":
+								;
+							break;
+							case "FIR_ADMI_USERS_MODIFY":
+								;
+							break;
+							case "FIR_ADMI_USERS_NEW":
+								;
+							break;													
+							case "FIR_ADMI_RIGHTS":
+								if (item.isAllowed) {
+									// ManageRights
+									// is 1
+									//CentralComm.rightsUserAdmin.push(CentralComm.app.homeAdmin.adminManageRights);
+									CentralComm.rightsUserAdmin = true;					
+								} 		
+							break;
+							case "FIR_ADMI_SETTINGS":
+								if (item.isAllowed) {
+									// ManageSettings
+									// is 2
+									//CentralComm.rightsUserAdmin.push(CentralComm.app.homeAdmin.adminManageSettings);
+									CentralComm.rightsUserAdmin = true;
+								} 		
+							break;
+							case "FIR_PROF_CREATEQUIZ":
+								if (item.isAllowed) {
+									// CreateQuiz
+									// is 0
+									//CentralComm.rightsUserProf.push(CentralComm.app.homeProf.profCreateQuiz);
+									CentralComm.rightsUserProf = true;
+								} 		
+							break;
+							case "FIR_PROF_CREATEQUESTION":
+								if (item.isAllowed) {	
+									// CreateQuestion
+									// is 1
+									//CentralComm.rightsUserProf.push(CentralComm.app.homeProf.profCreateQuestion);
+									CentralComm.rightsUserProf = true;	
+								} 		
+							break;
+							case "FIR_PROF_ASSIGNQUIZ":
+								if (item.isAllowed) {
+									// AssignQuiz
+									// 2
+									//CentralComm.rightsUserProf.push(CentralComm.app.homeProf.profAssignQuiz);
+									CentralComm.rightsUserProf = true;		
+								} 		
+							break;
+							case "FIR_SECR_SUBSECTION":
+								if (item.isAllowed) {
+									// ManageSubsection
+									// 0
+									//CentralComm.rightsUserSecretar.push(CentralComm.app.homeSecretar.secretarManageSubsection);
+									CentralComm.rightsUserSecretar = true;
+								} 		
+							break;
+							case "FIR_SECR_FORMATION":
+								if (item.isAllowed) {
+									// ManageFormation
+									// 1
+									//CentralComm.rightsUserSecretar.push(CentralComm.app.homeSecretar.secretarManageFormation);
+									CentralComm.rightsUserSecretar = true;					
+								} 		
+							break;
+							case "FIR_SECR_COMPETENCE":
+								if (item.isAllowed) {
+									// ManageCompetences
+									// 2
+									//CentralComm.rightsUserSecretar.push(CentralComm.app.homeSecretar.secretarManageCompetences);
+									CentralComm.rightsUserSecretar = true;				
+								} 		
+							break;
+							case "FIR_SECR_MENTION":
+								if (item.isAllowed) {
+									// ManageMention
+									// 3
+									//CentralComm.rightsUserSecretar.push(CentralComm.app.homeSecretar.secretarManageMention);
+									CentralComm.rightsUserSecretar = true;					
+								} 		
+							break;
+							case "FIR_SECR_SPECIALIZATION":
+								if (item.isAllowed) {
+									// ManageSpecialization
+									// 4
+									//CentralComm.rightsUserSecretar.push(CentralComm.app.homeSecretar.secretarManageSpecialization);
+									CentralComm.rightsUserSecretar = true;				
+								} 		
+							break;
+							case "FIR_SECR_PARCOURS":
+								if (item.isAllowed) {
+									// ManageParcours
+									// 5
+									//CentralComm.rightsUserSecretar.push(CentralComm.app.homeSecretar.secretarManageParcours);	
+									CentralComm.rightsUserSecretar = true;
+								} 		
+							break;
+							case "FIR_SECR_UNITS":
+								if (item.isAllowed) {
+									// ManageUnits
+									// 6
+									//CentralComm.rightsUserSecretar.push(CentralComm.app.homeSecretar.secretarManageUnits);
+									CentralComm.rightsUserSecretar = true;			
+								} 		
+							break;
+							case "FIR_SECR_GROUPS":
+								if (item.isAllowed) {
+									// ManageGroups
+									// 7
+									//CentralComm.rightsUserSecretar.push(CentralComm.app.homeSecretar.secretarManageGroups);
+									CentralComm.rightsUserSecretar = true;						
+								} 		
+							break;			
+							case "FIR_STUD_INFORMATIONS":
+								if (item.isAllowed) {
+									// Informations
+									// 0
+									//CentralComm.rightsUserStudent.push(CentralComm.app.homeStudent.studentInformations);
+									CentralComm.rightsUserStudent = true;						
+								} 		
+							break;
+							case "FIR_STUD_PRACTICEQUIZ":
+								if (item.isAllowed) {
+									// Practice
+									// 1
+									//CentralComm.rightsUserStudent.push(CentralComm.app.homeStudent.studentPractice);
+									CentralComm.rightsUserStudent = true;						
+								} 		
+							break;			
+							default:
+								;
+							break;						
+						}			
+					}
+				
+					CentralComm.app.homeBtnBar.visible = true;
+					CentralComm.app.mainBtnBar.visible = true;
+					CentralComm.app.hBoxMain.percentWidth = 100;
+					CentralComm.app.hBoxMain.percentHeight = 100;
+					CentralComm.app.appView.visible = true;
+					this.width = 0;
+					this.height = 0;
+					
+					CentralComm.app.login.visible = false;
+					
+					CentralComm.app.appStatusText.text = "Welcome "+CentralComm.currentUser.givenName+ ", you are logged in as "+ CentralComm.currentUser.role;
+					CentralComm.app.appSignOutBtn.visible = true;
+					userNameInput.text = "";
+					passwordInput.text = "";
+					
+					var item_:DisplayObject;
+					CentralComm.app.homeBtnBar.removeAllChildren();					
+					
+					switch (CentralComm.currentUser.role) {
+						case "Admin":
+							CentralComm.app.homeBtnBar.dataProvider = CentralComm.app.homeAdmin.adminStack;
+							if (!CentralComm.rightsUserAdmin) {
+								CentralComm.app.homeBtnBar.removeAllChildren();
+								CentralComm.app.homeAdmin.home.visible = true;
+								CentralComm.app.homeAdmin.adminStack.selectedChild = CentralComm.app.homeAdmin.home;								
+							} else {
+								CentralComm.app.homeBtnBar.getChildAt(0).visible = false;
+								CentralComm.app.homeAdmin.home.visible = false;
+							}
+							// go to
+							CentralComm.app.appView.selectedChild = CentralComm.app.homeAdmin;
+						break;
+						case "Professor":
+							CentralComm.app.homeBtnBar.dataProvider = CentralComm.app.homeProf.profStack;
+							if (!CentralComm.rightsUserProf) {
+								CentralComm.app.homeBtnBar.removeAllChildren();
+								CentralComm.app.homeProf.home.visible = true;
+								CentralComm.app.homeProf.profStack.selectedChild = CentralComm.app.homeProf.home;								
+							} else {
+								CentralComm.app.homeBtnBar.getChildAt(0).visible = false;
+								CentralComm.app.homeProf.home.visible = false;
+							}							
+							// go to
+							CentralComm.app.appView.selectedChild = CentralComm.app.homeProf;
+						break;
+						case "Student":
+							CentralComm.app.homeBtnBar.dataProvider = CentralComm.app.homeStudent.studentStack;
+							if (!CentralComm.rightsUserStudent) {
+								CentralComm.app.homeBtnBar.removeAllChildren();
+								CentralComm.app.homeStudent.home.visible = true;
+								CentralComm.app.homeStudent.studentStack.selectedChild = CentralComm.app.homeStudent.home;																
+							} else {
+								CentralComm.app.homeBtnBar.getChildAt(0).visible = false;
+								CentralComm.app.homeStudent.home.visible = false;
+								
+								CentralComm.app.homeBtnBar.getChildAt(3).visible = false;
+							}
+							// go to
+							CentralComm.app.appView.selectedChild = CentralComm.app.homeStudent;
+						break;
+						case "Secretar":
+							CentralComm.app.homeBtnBar.dataProvider = CentralComm.app.homeSecretar.secretarStack;
+							if (!CentralComm.rightsUserSecretar) {
+								CentralComm.app.homeBtnBar.removeAllChildren();
+								CentralComm.app.homeSecretar.home.visible = true;
+								CentralComm.app.homeSecretar.secretarStack.selectedChild = CentralComm.app.homeSecretar.home;								
+							} else {
+								CentralComm.app.homeBtnBar.getChildAt(0).visible = false;
+								CentralComm.app.homeSecretar.home.visible = false;
+							}
+							// go to
+							CentralComm.app.appView.selectedChild = CentralComm.app.homeSecretar;
+						break; 
+						default:
+						break;
+					}
+					
+				} catch (e:Error) {
+					Alert.show(e.message);
+				}
+			}
+		]]>
+	</mx:Script>
+
+	<mx:Panel layout="vertical"> 	
+	
+	<mx:Form id="loginForm" defaultButton="{loginButton}">
+		<mx:FormItem label="User Name:">
+			<mx:TextInput id="userNameInput"/>
+		</mx:FormItem>
+		<mx:FormItem label="Password:">
+			<mx:TextInput id="passwordInput" displayAsPassword="true"/>
+		</mx:FormItem>
+		<mx:FormItem>
+			<mx:Button id="loginButton"
+				label="Login" click="login()"/>
+		</mx:FormItem>
+	</mx:Form>
+</mx:Panel>
+
+<mx:Move id="faultEffect"
+		target="{loginForm}"
+		repeatCount="4" duration="50" 
+		xFrom="{loginForm.x - 30}" xTo="{loginForm.x}" />
+
+</mx:Canvas>

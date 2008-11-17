@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" label="Users"
+	creationComplete="init();" xmlns:adobe="http://www.adobe.com/2006/fc">
+
+<mx:Script>
+<![CDATA[
+	import mx.validators.EmailValidator;
+	import fr.semantic_learning.semquiz.valueobjects.StructureUnits;
+	import fr.semantic_learning.events.EventCommandFlex;
+	import fr.semantic_learning.semquiz.CentralComm;
+	import fr.semantic_learning.events.EventCommandFlex;
+	import mx.controls.Alert;
+	import fr.semantic_learning.semquiz.commands.AllCommands;
+	import mx.managers.CursorManager;
+	import fr.semantic_learning.semquiz.valueobjects.StructureUser;
+	import mx.core.Application;
+
+	public function init():void
+		{
+			CentralComm.app = Application.application as main;
+			this.addEventListener(AllCommands.NEW_USER, manageEvent);
+			this.addEventListener(AllCommands.SELECT_USER, manageSelectUser);
+		}
+	
+		public function addNewUser():void 
+		{
+			
+			var newUser:StructureUser = new StructureUser();
+			
+			if(checkIfCompletedAll()){
+				
+			
+			
+			
+			newUser.userName = usernameTextInput.text;
+			newUser.password = passwordTextInput.text;
+			
+			newUser.givenName = givenNameTextInput.text;
+			newUser.familyName = familyNameTextInput.text;
+			
+			newUser.email = emailTextInput.text;
+			newUser.url = urlTextInput.text;
+			
+			newUser.org = orgTextInput.text;
+			
+			newUser.role = userRoleCbx.selectedLabel;
+			newUser.language = userLangCbx.selectedLabel;
+		
+			newUser.title = userTitleCbx.selectedLabel;
+			
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_USER, newUser);
+			CentralComm.app.dispatchEvent(event);
+			}
+		}
+		
+		public function manageEvent(event:EventCommandFlex):void
+		{
+			var userRegistered:Boolean;
+			userRegistered = event.args as Boolean;
+			
+			if(userRegistered)
+			{
+				Alert.show("Userul a fost inregistrat cu succes!");
+			} else {
+				
+				Alert.show("Userul exista deja in baza de date!");
+				
+			}
+			
+		}
+		public function selectUser():void
+		{
+			var getUser:StructureUser = new StructureUser()
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_USER, getUser);
+			CentralComm.app.dispatchEvent(event);
+		}
+		
+		public function manageSelectUser(event:EventCommandFlex):void
+		{
+			//Alert.show(event.args.toString());
+			var listUser:Array = new Array();
+			//listUser.push(listSelectedUser.text);
+			listUser = event.args as Array;// as Array;
+			
+			//listSelectedUser.dataProvider = listUser;
+			listSelectedUser.dataProvider = listUser;
+			
+		}
+		
+		public function getLabelUser(user:StructureUser):String
+		{
+			return user.familyName;
+			
+		}
+		
+		public function checkIfCompletedUser():Boolean
+		{
+			if(usernameTextInput.text == "Username" || usernameTextInput.text == "")
+			{
+				Alert.show("Complete Username");
+				usernameTextInput.setFocus();
+				return false;
+			} else {
+				return true;
+			}
+			
+		}
+		public function checkIfCompletedPassword():Boolean
+		{
+			if(passwordTextInput.text == "Password" || passwordTextInput.text == "")
+			{
+				Alert.show("Complete Password");
+				passwordTextInput.setFocus();
+				return false;
+			} else {
+				return true;
+			}
+		}
+		public function checkIfCompletedGiven():Boolean
+		{
+			if(givenNameTextInput.text == "Given Name" || givenNameTextInput.text == "")
+			{
+				Alert.show("Complete Given Name");
+				return false;
+			} else {
+				return true;
+			}
+		}
+		public function checkIfCompletedFamily():Boolean
+		{
+			if(familyNameTextInput.text == "Family Name" || familyNameTextInput.text == "")
+			{
+				Alert.show("Complete Family Name");
+				return false;
+			} else {
+				return true;
+			}
+		}
+		
+				
+		
+		public function checkIfCompletedAll():Boolean
+		{
+			if (checkIfCompletedUser() && checkIfCompletedPassword() && checkIfCompletedGiven() && checkIfCompletedFamily())
+			{
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		]]>
+	
+</mx:Script>
+
+<mx:EmailValidator id="emailValidator" source="{emailTextInput}" property="text"/>
+	
+
+
+<mx:ToggleButtonBar dataProvider="adminUserStack" x="0" y="0"/>
+	
+
+
+<mx:ViewStack id="adminUserStack" resizeToContent="true">
+	<mx:Canvas id="newUser" label="New User">
+
+		<mx:Text x="0" y="27" text="Add new User"/>
+		
+		<mx:TextInput x="0" y="124" text="Given Name" id="givenNameTextInput"/>
+		<mx:TextInput x="0" y="154" text="Family Name" id="familyNameTextInput"/>
+		
+		<mx:TextInput x="0" y="204" id="emailTextInput" text="e-mail"/>
+		<mx:TextInput x="0" y="55" id="usernameTextInput" text="Username"/>
+		<mx:TextInput x="0" y="85" id="passwordTextInput" text="Password" displayAsPassword="false"/>
+		<mx:ComboBox x="173" y="154" id="userLangCbx">
+			<mx:ArrayCollection>
+	         <mx:String>Languages</mx:String>
+	         <mx:String>French</mx:String>
+	         <mx:String>English</mx:String>
+	         <mx:String>Romanian</mx:String>
+	      </mx:ArrayCollection>
+		</mx:ComboBox>
+		<mx:ComboBox x="173" y="184" id="userRoleCbx">
+			<mx:ArrayCollection>
+	         <mx:String>Student</mx:String>
+	         <mx:String>Professor</mx:String>
+	         <mx:String>Admin</mx:String>
+	         <mx:String>Secretar</mx:String>
+	      </mx:ArrayCollection>
+		</mx:ComboBox>
+		<mx:ComboBox x="173" y="124" id="userTitleCbx">
+			<mx:ArrayCollection>
+	         <mx:String>Director</mx:String>
+	         <mx:String>Adjunct</mx:String>
+	         <mx:String>Nobady</mx:String>
+	      </mx:ArrayCollection>
+		</mx:ComboBox>
+		
+		<mx:TextInput x="0" y="234" text="URL" id="urlTextInput"/>
+		<mx:TextInput x="173" y="85" text="Organization" id="orgTextInput"/>
+		<mx:Button x="255" y="244" label="Add User" id="addNewUserBtn" click="addNewUser();"/>
+		
+	</mx:Canvas>
+	<mx:Canvas id="modifyUser" label="Modify User">
+		<!-- <mx:TextInput x="170" y="258" id="textInputSelectUser" change="selectUser()"/> --> 
+		<mx:ComboBox id="listSelectedUserCbx" x="0" y="30" arrowButtonWidth="0" change="selectUser();" editable="true" width="160"></mx:ComboBox>
+		<mx:List id="listSelectedUser" x="0" y="60" width="160" labelFunction="getLabelUser"/>
+		<!--<adobe:AutoComplete  x="183" y="298" id="listSelectedUser"/>-->
+	</mx:Canvas>
+	<mx:Canvas id="deleteUser" label="Delete User">
+		
+	</mx:Canvas>
+	
+	
+</mx:ViewStack>	
+	
+	
+</mx:Canvas>

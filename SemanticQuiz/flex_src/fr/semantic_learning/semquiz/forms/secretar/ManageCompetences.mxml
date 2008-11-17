@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" label="Competence" width="100%" height="100%">
+
+<mx:Script>
+	<![CDATA[
+	
+		import fr.semantic_learning.semquiz.CentralComm;
+		import fr.semantic_learning.events.EventCommandFlex;
+		import mx.controls.Alert;
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import mx.managers.CursorManager;
+		import fr.semantic_learning.semquiz.valueobjects.StructureCompetence;
+		import mx.core.Application;
+	
+		public function init():void
+		{
+			CentralComm.app = Application.application as main;
+			this.addEventListener(AllCommands.RETURN_COMPETENCES, manageEvent);
+		}
+
+		
+		public function addNewCompetence():void
+		{
+			
+			if(competenceTextInput.text != "Competence Title")
+			{
+				var newCompetence:StructureCompetence = new StructureCompetence();
+				newCompetence.title = competenceTextInput.text;
+				var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_COMPETENCE, newCompetence);
+				CentralComm.app.dispatchEvent(event);
+				
+			} else {
+				
+				Alert.show("Complete Competence Title!");
+				competenceTextInput.text = "";
+				competenceTextInput.setFocus();
+			}
+			
+			
+			
+		}
+		
+		public function manageEvent(event:EventCommandFlex):void
+		{
+			
+		}
+		
+	]]>
+	
+</mx:Script>
+	
+	<mx:Text x="22" y="10" text="Add New Competence"/>
+	<mx:TextInput x="144" y="55" text="Competence Title" id="competenceTextInput"/>
+	<mx:Button x="144" y="95" label="Add Competence" id="addNewCompetenceBtn" click="addNewCompetence();"/>
+	<mx:Text x="22" y="55" text="Competence Title:"/>
+</mx:Canvas>
