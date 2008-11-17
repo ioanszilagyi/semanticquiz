@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:forms="fr.semantic_learning.semquiz.forms.student.*"
+	label="Students"
+	creationComplete="init();">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import fr.semantic_learning.semquiz.valueobjects.StructureQuiz;
+			import fr.semantic_learning.semquiz.CentralComm;
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			import fr.semantic_learning.events.EventCommandFlex;
+		
+			public function init():void
+			{				
+				//CentralComm.app.homeBtnBar.getChildAt(2).visible = false;
+				this.addEventListener(AllCommands.SELECT_PENDING_QUIZZES, manageEvent);
+				this.addEventListener(AllCommands.SELECT_QUIZ_QUESTIONS, manageEvent);
+				this.addEventListener(AllCommands.STUDENT_START_QUIZ, manageEvent);
+				this.addEventListener(AllCommands.STUDENT_NEXT_QUESTION, manageEvent);		
+				this.addEventListener(AllCommands.SELECT_QUESTIONS, manageEvent);				
+			}
+			
+			public function manageEvent(event:EventCommandFlex):void {
+				if (event.command == AllCommands.STUDENT_START_QUIZ) {	
+					studentRunningQuiz.dispatchEvent(new EventCommandFlex(event.command, event.args));
+				} else {					
+					//Alert.show(event.command.toString());
+					studentStack.selectedChild.dispatchEvent(new EventCommandFlex(event.command, event.args));
+				}
+			}
+			
+			private function onChange():void {
+				if (CentralComm.app.homeBtnBar.selectedIndex == 1) {
+					// send event to quzzes id's in pending for current user
+					var event:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_PENDING_QUIZZES, CentralComm.currentUser.id);
+					CentralComm.app.dispatchEvent(event);
+					//studentRunningQuiz.removeAllChildren();
+				}
+				if (CentralComm.app.homeBtnBar.selectedIndex == 3) {
+					//studentRunningQuiz.removeAllChildren();
+					//studentRunningQuiz.visible = true;
+				}
+			}
+		]]>
+	</mx:Script>
+	
+<mx:ViewStack id="studentStack" resizeToContent="true" creationPolicy="all" change="onChange()">	
+	<mx:Canvas id="home">
+		<mx:Label text="Access Deny!"/>	
+	</mx:Canvas>
+	<forms:StudentInformations id="studentInformations"/>
+	<forms:StudentPractice id="studentPractice"/>
+	<forms:StudentRunningQuiz id="studentRunningQuiz"/>
+</mx:ViewStack>
+	
+</mx:Canvas>

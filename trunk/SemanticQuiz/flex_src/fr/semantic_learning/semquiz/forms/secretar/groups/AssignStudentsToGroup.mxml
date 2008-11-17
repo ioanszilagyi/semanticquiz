@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="Assign Students To Group" 
+	xmlns:ns="fr.semantic_learning.semquiz.utils.*" height="600" width="800" backgroundColor="#7FA5B9" backgroundAlpha="0.5">
+	<mx:ComboBox x="29" y="97" width="150" height="25" id="student" prompt="student"></mx:ComboBox>
+	<mx:ComboBox x="320.95" y="97" width="150" height="25" id="group" prompt="group"></mx:ComboBox>
+	<mx:ComboBox x="33.95" y="338.2" width="145" height="25" id="Speciality" prompt="speciality"></mx:ComboBox>
+	<mx:ComboBox x="320.9" y="338.2" width="150" height="25" id="parcurs" prompt="parcurs"></mx:ComboBox>
+	<mx:ComboBox x="614" y="339" width="150" height="25" id="mention" prompt="mention"></mx:ComboBox>
+	<mx:CheckBox x="614.1" y="309.55" label="Search Mention"/>
+	<mx:CheckBox x="33.85" y="309.55" label="Search Speciality"/>
+	<mx:CheckBox x="29.05" y="68.5" label="Search Student"/>
+	<mx:CheckBox x="320.95" y="68.5" label="Search Group"/>
+	<mx:CheckBox x="320.9" y="309.55" label="Search Parcurs"/>
+	<mx:Label x="29" y="9" text="Gropups and Students" width="735" height="27.786884" fontFamily="Arial" fontSize="20" fontWeight="bold" textAlign="center" color="#647275"/>
+	<mx:HRule width="735" height="4" horizontalCenter="-4" verticalCenter="-256"/>
+	
+</mx:Canvas>

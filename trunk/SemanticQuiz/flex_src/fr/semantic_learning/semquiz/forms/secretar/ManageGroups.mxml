@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:forms="fr.semantic_learning.semquiz.forms.secretar.groups.*"
+	label="Groups">
+	
+	<mx:ToggleButtonBar dataProvider="groupsStack"/>	
+	
+	<mx:Script>
+		<![CDATA[
+			import fr.semantic_learning.semquiz.CentralComm;
+			import fr.semantic_learning.semquiz.valueobjects.StructureParcours;
+			import fr.semantic_learning.semquiz.valueobjects.StructureSpecialization;
+			import fr.semantic_learning.semquiz.valueobjects.StructureMention;
+			import fr.semantic_learning.events.EventCommandFlex;
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			
+			private function onChange():void {
+				if (groupsStack.selectedIndex == 0) {
+					// bring all Mentions
+					var event:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_MENTION, new StructureMention());
+					CentralComm.app.dispatchEvent(event);
+					
+					// bring all Specializations
+					event = new EventCommandFlex(AllCommands.SELECT_SPECIALIZATION, new StructureSpecialization());
+					CentralComm.app.dispatchEvent(event);
+					
+					// bring all Parcours
+					event = new EventCommandFlex(AllCommands.SELECT_PARCOURS, new StructureParcours());
+					CentralComm.app.dispatchEvent(event);
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	
+	<mx:ViewStack id="groupsStack" creationPolicy="all" resizeToContent="true" y="30" change="onChange()">
+		<forms:NewGroups/>
+		<forms:DeleteGroups/>
+		<forms:AssignStudentsToGroup/>
+	</mx:ViewStack>
+	
+</mx:Canvas>

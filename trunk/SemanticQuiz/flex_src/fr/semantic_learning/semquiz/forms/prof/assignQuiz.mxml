@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" label="Assign Quiz" 
+	creationComplete="init();" width="800" height="600" backgroundColor="#7FA5B9" 
+	backgroundAlpha="0.0" xmlns:ns="fr.semantic_learning.semquiz.utils.*">
+	<mx:Button 
+		click="callStudentList();" id="studButton" label="Students" 
+		width="120" height="25" verticalCenter="-252" fontFamily="Verdana" 
+		fontSize="10" horizontalCenter="-318"/>
+	<mx:Button 
+		click="callGroupList();" label="Groups" id="groupButton" 
+		width="120" height="25" verticalCenter="-213" fontFamily="Verdana" 
+		fontSize="10" horizontalCenter="-318"/>
+	<mx:Button 
+		click="callParcoursList();" label="Parcours" id="parcurButton" 
+		width="120" height="25" verticalCenter="-175" fontFamily="Verdana" 
+		fontSize="10" horizontalCenter="-318"/>
+	<mx:Button 
+		click="callSpeciList();" label="Specializations" id="specButton" 
+		width="120" height="25" verticalCenter="-136" fontFamily="Verdana" 
+		fontSize="10" horizontalCenter="-318"/>
+	<mx:Button 
+		click="callMentionList();" label="Mentions" id="mentionButton" 
+		width="120" height="25" verticalCenter="-98" fontFamily="Verdana" 
+		fontSize="10" horizontalCenter="-318"/>
+	<mx:VRule width="4" height="580.2459" x="165" y="9.8"/>
+<mx:HBox 
+	width="601.31146" height="421.14752" horizontalAlign="center" verticalAlign="top" 
+	horizontalGap="60" borderColor="#7FA5B9" borderStyle="solid" borderThickness="0" 
+	x="181" y="169">
+	<ns:DragSelectList
+		dragEnabled="true"
+		dragMoveEnabled="true"
+		dropEnabled="true"
+		allowMultipleSelection="true"
+		labelFunction="getSelectedQuizLabel"
+		buttonMode="true"
+		cornerRadius="5"
+		itemRenderer="fr.semantic_learning.semquiz.utils.CheckBoxControlList"
+		width="260" height="420" id="status_list">
+	</ns:DragSelectList>
+	<ns:DragSelectList
+		dragEnabled="true"
+		dragMoveEnabled="true"
+		dropEnabled="true"
+		allowMultipleSelection="true"
+		buttonMode="true"
+		cornerRadius="5"
+		labelFunction="getQuizLabel"
+		itemRenderer="fr.semantic_learning.semquiz.utils.CheckBoxControlList" 
+		width="260" height="420" id="quiz_list">
+	</ns:DragSelectList>
+</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import fr.semantic_learning.semquiz.valueobjects.StructurePendingQuizzes;
+			import mx.controls.Alert;
+			import fr.semantic_learning.semquiz.valueobjects.StructureStudent;
+			import fr.semantic_learning.semquiz.valueobjects.StructureQuiz;
+			import fr.semantic_learning.semquiz.valueobjects.StructureMention;
+			import fr.semantic_learning.semquiz.valueobjects.StructureGroups;
+			import fr.semantic_learning.semquiz.valueobjects.StructureSpecialization;
+ 			import fr.semantic_learning.semquiz.valueobjects.StructureUser;
+			import fr.semantic_learning.semquiz.valueobjects.StructureParcours;
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			import fr.semantic_learning.events.EventCommandFlex;
+			import fr.semantic_learning.semquiz.CentralComm;
+			import mx.core.Application;
+			
+			import mx.controls.Button;
+			import mx.events.*;
+			
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//			- init() function contains:																	//
+//					- listen  SELECT_USER, SELECT_PARCOURS, SELECT_SPECIALIZATION,SELECT_MENTION  		//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////				
+			
+			private function init():void
+			{
+				this.addEventListener(AllCommands.SELECT_USER, displayUserList);
+				this.addEventListener(AllCommands.SELECT_PARCOURS, displayParcourList);
+				this.addEventListener(AllCommands.SELECT_SPECIALIZATION, displaySpecialList);
+				this.addEventListener(AllCommands.SELECT_MENTION, displayMentionList);
+				this.addEventListener(AllCommands.SELECT_ALL_QUIZ, displayQuizList);
+
+				
+				CentralComm.app = Application.application as main;
+			}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//			- these function return familyName and titles												//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////			
+			
+			private function getSelectedUser(item:StructureUser):String
+            {
+            	return item.familyName;
+      		}
+      		private function getSelectedGroup(item:StructureGroups):String
+            {
+            	return item.title;
+      		}
+      		private function getSelectedParcour(item:StructureParcours):String
+            {
+            	return item.title;
+      		}
+      		private function getSelectedSpecial(item:StructureSpecialization):String
+            {
+            	return item.title;
+      		}
+      		private function getSelectedMention(item:StructureMention):String
+            {
+            	return item.title;
+      		}
+      		private function getQuizLabel(item:StructureQuiz):String
+            {
+            	return item.title;
+      		}
+     		private function getSelectedQuizLabel(item:StructureQuiz):String
+            {
+            	return item.title;
+      		}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//			- these functions calls student, group, parcour, specialization, mention list				//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////		      		
+     		
+			private function callStudentList():void
+			{
+				menu_list.text = studButton.label.toLocaleUpperCase();
+				studentCombo.visible = true;
+				groupCombo.visible = false;
+				parcourCombo.visible = false;
+				specialCombo.visible = false;
+				mentionCombo.visible = false;
+				studentCombo.prompt = "Students"
+				var getStudent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_USER, new StructureUser());
+            	CentralComm.app.dispatchEvent(getStudent);
+			}
+			private function callGroupList():void
+			{
+				menu_list.text = groupButton.label.toLocaleUpperCase();
+				studentCombo.visible = false;
+				groupCombo.visible = true;
+				parcourCombo.visible = false;
+				specialCombo.visible = false;
+				mentionCombo.visible = false;
+				groupCombo.prompt = "Groups"
+			}
+			private function callParcoursList():void
+			{
+				menu_list.text = parcurButton.label.toLocaleUpperCase();
+				studentCombo.visible = false;
+				groupCombo.visible = false;
+				parcourCombo.visible = true;
+				specialCombo.visible = false;
+				mentionCombo.visible = false;
+				parcourCombo.prompt = "Parcours"
+				var getParcurs:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_PARCOURS, new StructureParcours(null, ""));
+            	CentralComm.app.dispatchEvent(getParcurs);
+			}
+			private function callSpeciList():void
+			{
+				menu_list.text = specButton.label.toLocaleUpperCase();
+				studentCombo.visible = false;
+				groupCombo.visible = false;
+				parcourCombo.visible = false;
+				specialCombo.visible = true;
+				mentionCombo.visible = false;
+				specialCombo.prompt = "Specialization"
+				var getSpecial:StructureSpecialization = new StructureSpecialization(null, "");
+				var getSpecialization:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_SPECIALIZATION, getSpecial);
+            	CentralComm.app.dispatchEvent(getSpecialization);
+			}
+			private function callMentionList():void
+			{
+				menu_list.text = mentionButton.label.toLocaleUpperCase();
+				studentCombo.visible = false;
+				groupCombo.visible = false;
+				parcourCombo.visible = false;
+				specialCombo.visible = false;
+				mentionCombo.visible = true;
+				mentionCombo.prompt = "Mention"
+				var getMention:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_MENTION, new StructureMention());
+            	CentralComm.app.dispatchEvent(getMention);
+			}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//		- these functions display student, group, parcour, specialization, mention into comboBox		//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////		      		
+			
+			private function displayUserList(event:EventCommandFlex):void
+			{
+				studentCombo.dataProvider = event.args as Array;
+			}	
+			private function displayParcourList(event:EventCommandFlex):void
+			{
+				parcourCombo.dataProvider = event.args as Array;
+			}
+			private function displaySpecialList(event:EventCommandFlex):void
+			{
+				specialCombo.dataProvider = event.args as Array;
+			}
+			private function displayMentionList(event:EventCommandFlex):void
+			{
+				mentionCombo.dataProvider = event.args as Array;
+			}
+			private function displayQuizList(event:EventCommandFlex):void
+			{
+				quiz_list.dataProvider = event.args as Array;
+			}
+						
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//		- this function save the quiz into pendingQuiz													//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////		      	
+			
+			private function saveQuiz():void
+			{
+				var pendingQuiz:Array = new Array();
+				
+				var structQuiz:StructurePendingQuizzes = new StructurePendingQuizzes();
+				structQuiz.idUser = studentCombo.selectedItem.id;
+				 
+              	for each (var item:StructureQuiz in status_list.dataProvider)
+              		{
+              			pendingQuiz.push(item.id);
+              		}
+				structQuiz.idQuiz = pendingQuiz;
+				/*structQuiz.idUser = studentCombo.selectedItem.id; */
+				/* structQuiz.idParcours = parcourCombo.selectedItem.id;
+				structQuiz.idSpec = specialCombo.selectedItem.id;
+				structQuiz.idMention = mentionCombo.selectedItem.id; */
+	
+				var eventstruct:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_PENDING_Q, structQuiz);
+				CentralComm.app.dispatchEvent(eventstruct);
+			}
+
+		]]>
+	</mx:Script>
+	<mx:Label 
+		text="STATUS:" width="250" height="22" fontSize="14" fontWeight="normal" 
+		horizontalCenter="-84" verticalCenter="-143" fontStyle="normal" 
+		fontFamily="Arial" textDecoration="normal"/>
+	<mx:Label 
+		text="MENU:" width="118" height="22" fontSize="14" fontWeight="normal" 
+		fontStyle="normal" 
+		fontFamily="Arial" textDecoration="normal" x="24" y="9"/>
+	<mx:Label 
+		text="LIST: (select from menu)" width="260" height="21.967213" fontSize="14" fontWeight="normal" 
+		fontStyle="normal" fontFamily="Arial" textDecoration="normal" 
+		x="191" y="9" id="menu_list" enabled="true"/>
+	<mx:Label 
+		text="QUIZ:" width="250" height="22" fontSize="14" fontWeight="normal" 
+		horizontalCenter="237" verticalCenter="-143" fontStyle="normal" 
+		fontFamily="Arial" textDecoration="normal"/>
+	<mx:Button 
+		click="saveQuiz();" id="save_quiz"
+		y="559.2" label="Done" width="120" height="25" horizontalCenter="-319"/>
+	<mx:ComboBox 
+		labelFunction="getSelectedUser" width="260" height="25" horizontalCenter="-79" 
+		verticalCenter="-251" id="studentCombo" visible="false" rowCount="4">
+	</mx:ComboBox>
+	<mx:ComboBox 
+		labelFunction="getSelectedGroup" width="260" height="25" horizontalCenter="-79" 
+		verticalCenter="-251" id="groupCombo" visible="false" rowCount="4">
+	</mx:ComboBox>
+	<mx:ComboBox 
+		labelFunction="getSelectedParcour" width="260" height="25" horizontalCenter="-79" 
+		verticalCenter="-251" id="parcourCombo" visible="false" rowCount="4">
+	</mx:ComboBox>
+	<mx:ComboBox 
+		labelFunction="getSelectedSpecial" width="260" height="25" horizontalCenter="-79" 
+		verticalCenter="-251" id="specialCombo" visible="false" rowCount="4">
+	</mx:ComboBox>
+	<mx:ComboBox 
+		labelFunction="getSelectedMention" width="260" height="25" horizontalCenter="-79" 
+		verticalCenter="-251" id="mentionCombo" visible="false" rowCount="4">
+	</mx:ComboBox>
+</mx:Canvas>

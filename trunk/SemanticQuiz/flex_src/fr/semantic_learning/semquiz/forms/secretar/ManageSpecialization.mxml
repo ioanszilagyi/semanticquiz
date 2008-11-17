@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="Specialization"
+	initialize="init();">
+	
+	<mx:Script>
+		<![CDATA[
+			import fr.semantic_learning.semquiz.valueobjects.StructureSpecialization;
+			import fr.semantic_learning.semquiz.valueobjects.StructureUser;
+			import fr.semantic_learning.semquiz.valueobjects.StructureMention;
+			
+			
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import fr.semantic_learning.semquiz.CentralComm;
+		import fr.semantic_learning.events.EventCommandFlex;
+		import mx.controls.Alert;
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import mx.managers.CursorManager;
+		import mx.core.Application;
+	
+		public function init():void
+		{
+			CentralComm.app = Application.application as main;
+			this.addEventListener(AllCommands.RETURN_SPECIALIZATIONS, manageEventSpec);
+			this.addEventListener(AllCommands.SELECT_USER, manageEventResp);
+			this.addEventListener(AllCommands.SELECT_MENTION, manageEventMention);
+			
+		}
+		
+		public function getSpecializations():void
+		{
+			var getSpecializationsEvent:EventCommandFlex = new EventCommandFlex(AllCommands.GET_SPECIALIZATIONS, "MySpec");
+			CentralComm.app.dispatchEvent(getSpecializationsEvent);
+			CursorManager.setBusyCursor();			
+		}
+		
+		public function addNewSpecialization(cod:String, title:String):void
+		{
+			var newSpecialization:StructureSpecialization = new StructureSpecialization(cod, title);
+			
+			newSpecialization.idResp = responsableList.selectedItem.id;
+			newSpecialization.idMention = mentionList.selectedItem.id;
+			
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_SPECIALIZATION ,newSpecialization);
+			CentralComm.app.dispatchEvent(event);
+			
+			//infoText.text = newSpecialization.cod+";\n"+newSpecialization.title; 
+		}
+		
+		public function manageEventSpec(event:EventCommandFlex):void
+		{
+			var arrSpecializations:Array = new Array();
+			arrSpecializations = event.args as Array;
+			//infoText.text += arrSpecializations.toString();
+			CursorManager.removeBusyCursor();
+			
+		}
+		public function getMention():void
+		{
+			if(mentionTextInput.text == "Search Mention")
+			{
+				mentionTextInput.text = "";
+				mentionTextInput.setFocus();
+			}
+
+			//var getFormation:StructureFormation = new StructureFormation();
+			
+			var getMention:StructureMention = new StructureMention(mentionTextInput.text);
+			
+			var getMentionEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_MENTION, getMention );
+			
+			CentralComm.app.dispatchEvent(getMentionEvent);
+			
+		}
+		public function manageEventMention(event:EventCommandFlex):void
+		{
+			//Alert.show("a venit user in manage mention!");
+			var arrMention:Array = new Array();
+			arrMention = event.args as Array;
+			//infoText.text += arrMentions.toString();
+			CursorManager.removeBusyCursor();
+			
+			//Alert.show(arrResp.length.toString());
+			mentionList.dataProvider = arrMention;
+			
+		}
+		
+		public function getResp():void
+		{
+			if(responsableTextInput.text == "Search Responsable")
+			{
+				responsableTextInput.text = "";
+				responsableTextInput.setFocus();
+			}
+			var getResp:StructureUser = new StructureUser();
+			getResp.role = "Professor";
+			getResp.familyName = responsableTextInput.text;
+			getResp.givenName = responsableTextInput.text;
+			
+			var getRespEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_USER, getResp);
+			CentralComm.app.dispatchEvent(getRespEvent);
+		}
+		
+		public function manageEventResp(event:EventCommandFlex):void
+		{
+			//Alert.show("a venit user in manage mention!");
+			var arrResp:Array = new Array();
+			arrResp = event.args as Array;
+			//infoText.text += arrMentions.toString();
+			CursorManager.removeBusyCursor();
+			
+			//Alert.show(arrResp.length.toString());
+			responsableList.dataProvider = arrResp;
+			
+		}
+		
+		
+		
+		public function getLabelResp(user:StructureUser):String
+		{
+			return user.familyName;
+		}
+		
+		public function getLabelMention(mention:StructureMention):String
+		{
+			return mention.title;
+		}
+		
+		public function setResponsable():void
+		{
+			setResponsableText.text = responsableList.selectedItem.familyName;
+		}
+		
+		public function setMention():void
+		{
+			setMentionText.text = mentionList.selectedItem.title;
+		}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:TextInput x="77" y="23" text="Code" id="textInputCodeSpecialization" restrict="A-Z"/>
+	<mx:TextInput x="77" y="63" text="Title" id="textInputTitleSpecialization"/>
+	<mx:Button x="77" y="120" label="Add Specialization" click="addNewSpecialization(textInputCodeSpecialization.text, textInputTitleSpecialization.text)" id="addNexSpecializationBtn"/>
+	<mx:List x="402" y="62" width="180" height="114" id="mentionList" labelFunction="getLabelMention"></mx:List>
+	<mx:TextInput x="274" y="63" width="120" text="Search Mention" id="mentionTextInput"/>
+	<mx:TextInput x="265" y="235" width="127" text="Search Responsable" id="responsableTextInput"/>
+	<mx:List x="400" y="234" width="180" height="114" id="responsableList" labelFunction="getLabelResp" click="setResponsable()"></mx:List>
+	<mx:Text x="321" y="23" text="Mention:"/>
+	<mx:Button x="280" y="93" label="Get Mentions" id="mentionBtn" click="getMention()"/>
+	<mx:Button x="271" y="265" label="Get Responsable" id="responsableBtn" click="getResp()"/>
+	<mx:Text x="306" y="197" text="Responsable"/>
+	<mx:Text x="402" y="23" text="Select a mention" width="160" id="setMentionText"/>
+	<mx:Text x="400" y="197" text="Select a responsable" width="162" id="setResponsableText"/>
+	
+</mx:Canvas>

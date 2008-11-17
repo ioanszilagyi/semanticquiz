@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:forms="fr.semantic_learning.semquiz.forms.prof.*"
+	label="Professor"
+	creationComplete="init();">
+	<mx:Script>
+		<![CDATA[
+			import fr.semantic_learning.semquiz.valueobjects.*;		
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			import fr.semantic_learning.semquiz.CentralComm;
+			import mx.core.Application;
+			import fr.semantic_learning.events.EventCommandFlex;
+			
+		public function init():void
+		{
+			CentralComm.app = Application.application as main;
+			this.addEventListener(AllCommands.SELECT_SUBSECTION, manageEvent);
+			this.addEventListener(AllCommands.SELECT_USER, manageEvent);
+			this.addEventListener(AllCommands.SELECT_PARCOURS, manageEvent);
+			this.addEventListener(AllCommands.SELECT_MENTION, manageEvent);
+			this.addEventListener(AllCommands.SELECT_SPECIALIZATION, manageEvent);
+			this.addEventListener(AllCommands.SELECT_COMPETENCE, manageEvent);
+			this.addEventListener(AllCommands.RDF_SAVED_IN_BD, manageEvent);  
+            this.addEventListener(AllCommands.UPLOAD_COMPLETE, manageEvent); 
+			this.addEventListener(AllCommands.SUBSECTION_QUESTIONS, manageEvent);
+			this.addEventListener(AllCommands.SELECT_SECTION, manageEvent);
+			this.addEventListener(AllCommands.SELECT_COMPETENCE, manageEvent);
+			this.addEventListener(AllCommands.SELECT_UNIT, manageEvent);
+			this.addEventListener(AllCommands.SELECT_EVALUATIONTYPE, manageEvent);
+			this.addEventListener(AllCommands.NEW_FILEUPTIP, manageEvent); 
+			this.addEventListener(AllCommands.SELECT_ALL_QUIZ, manageEvent);
+		}
+		
+		public function manageEvent(event:EventCommandFlex):void 
+		{
+			//Alert.show(event.command.toString());
+			profStack.selectedChild.dispatchEvent(new EventCommandFlex(event.command, event.args));			
+		}
+	
+		private function onChange():void {
+			if (profStack.selectedIndex == 1) {
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_UNIT,new StructureUnits());
+			CentralComm.app.dispatchEvent(event);
+			event = new EventCommandFlex(AllCommands.SELECT_SUBSECTION, new StructureSubsection());
+			CentralComm.app.dispatchEvent(event);
+			event = new EventCommandFlex(AllCommands.SELECT_COMPETENCE,new StructureCompetence());
+			CentralComm.app.dispatchEvent(event);
+			event = new EventCommandFlex(AllCommands.SELECT_EVALUATIONTYPE,new StructureEvaluationType());
+			CentralComm.app.dispatchEvent(event);
+			}
+			if (profStack.selectedIndex == 2) {
+				// go to Create Quiz and 
+				// bring all the domains & comptences
+            	var getDEv:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_SUBSECTION, new StructureSubsection());
+            	CentralComm.app.dispatchEvent(getDEv);
+            	
+            	var getCEv:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_COMPETENCE, new StructureCompetence());
+            	CentralComm.app.dispatchEvent(getCEv);
+			}
+			if (profStack.selectedIndex == 3)
+			{
+				var getQuiz:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_ALL_QUIZ, "");
+				CentralComm.app.dispatchEvent(getQuiz);
+            	//CentralComm.app.dispatchEvent(new EventCommandFlex(AllCommands.SELECT_ALL_QUIZ, new StructureQuiz()));	
+			}
+		}
+		]]>
+	</mx:Script>
+	
+	<mx:ViewStack id="profStack" creationPolicy="all" resizeToContent="true" change="onChange()">
+		<mx:Canvas id="home">
+			<mx:Label text="Access Deny!"/>	
+		</mx:Canvas>		
+		<forms:createQuestion id="profCreateQuestion"/>
+		<forms:CreateQuiz id="profCreateQuiz"/>		
+		<forms:assignQuiz id="profAssignQuiz"/>
+	</mx:ViewStack>
+	
+</mx:Canvas>

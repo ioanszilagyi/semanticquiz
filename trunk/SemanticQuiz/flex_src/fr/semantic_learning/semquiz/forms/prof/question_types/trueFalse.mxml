@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init();">
+ <mx:VBox height="100%"> 	
+	<mx:Label x="6" y="10" text="Question text" fontWeight="bold"/>
+	<mx:Label x="10" y="29" text="click to add question text text" width="624" height="45" id="lbl_text"/>
+<mx:HBox>
+	<mx:Button x="10" y="93" label="Add media" id="btn_media"  />
+	<mx:Image id="imgV" x="108" y="91" height="23" width="27" source = "{LogoV}" visible="false" />
+	<mx:Image id="imgS" x="143" y="91" height="23" width="27" source = "{LogoS}" visible="false" />
+	<mx:Image id="imgP" x="178" y="91" height="23" width="27" source = "{LogoP}" visible="false" />	
+</mx:HBox>
+ <mx:VBox height="100%"> 
+    <mx:RadioButton x="19" y="123" label="True" id="rdb_true"/>
+	<mx:RadioButton x="19" y="153" label="False" id="rdb_false"/>
+	<mx:Button x="19" y="236" label="save" click="sendData();"/>
+ </mx:VBox>
+</mx:VBox>
+	
+<mx:Script>
+     <![CDATA[      
+	  import fr.semantic_learning.semquiz.valueobjects.StructureQuestion;
+	  import fr.semantic_learning.semquiz.valueobjects.StructureQuestionVariants;
+	  import fr.semantic_learning.semquiz.UploadFiles;
+	  import fr.semantic_learning.events.ComMsgToJava;
+	  import fr.semantic_learning.semquiz.utils.DragResizePanel;
+	  
+      import mx.collections.ArrayCollection;
+      import mx.core.*;
+      import mx.containers.*;
+      import mx.managers.*;
+      import mx.events.*;
+      import mx.controls.*;
+      import mx.states.*;      
+      import flash.net.FileFilter;
+     
+	  import mx.utils.*;
+	  import mx.messaging.events.*;
+	  import mx.messaging.messages.AsyncMessage;		
+	  import mx.rpc.events.FaultEvent;
+          
+      import fr.semantic_learning.semquiz.commands.AllCommands;
+	  import fr.semantic_learning.semquiz.CentralComm;
+	  import mx.core.Container; 
+	  import fr.semantic_learning.semquiz.utils.HomeProfData;
+	  import fr.semantic_learning.events.*;
+	  import fr.semantic_learning.semquiz.utils.*;
+	
+      import flash.display.Sprite;
+	  import flash.events.MouseEvent;
+	
+    
+      [SWF(frameRate=30)] 
+         
+      [Embed(source="/img/image.png")]
+      [Bindable] public var LogoP:Class;   
+      
+      [Embed(source="/img/movie.png")]
+      [Bindable] public var LogoV:Class;
+      
+      [Embed(source="/img/music.png")]
+      [Bindable] public var LogoS:Class;  
+      
+      private var resourceUpload:UploadFiles;
+      private var ccontrol:Label;
+      
+      private var allowcreatertb:Boolean = true;
+      
+      public function init():*{   
+       btn_media.addEventListener(MouseEvent.CLICK, onClick3); 	      
+       lbl_text.addEventListener(MouseEvent.CLICK, onClickmain );
+       this.addEventListener(AllCommands.RDF_SAVED_IN_BD, getresp);   
+       this.addEventListener(AllCommands.UPLOAD_COMPLETE, getresp);
+       this.addEventListener(AllCommands.NEW_FILEUPTIP, getresp);
+       CentralComm.app = Application.application as main; 	   			
+	   resourceUpload = new UploadFiles();
+	   createContextMenuMain(this.imgP);
+	   createContextMenuMain(this.imgV);
+	   createContextMenuMain(this.imgS);                 
+      }
+      
+        private function onClick3 ( event:MouseEvent ):void {          
+         //  browseAndUpload();
+         var btn:Button = Button(event.currentTarget);       
+         var s:String = btn.id.substring(btn.id.indexOf("_"),btn.id.length);
+         var id:String = btn.id;
+         //resourceUpload.addResource(s,"");
+         if(id=="btn_media")
+         {
+           resourceUpload.addResource("main");
+          // Alert.show("add res main");
+           	
+         }                 
+         }
+         
+       private function onClickmain (event:MouseEvent ):void { 
+          	try
+        	{   
+        	 ccontrol = (event.currentTarget as Label);         
+             var item:Label;
+             var ptm:Point = new Point(event.localX, event.localY);
+             // pt = event.target.localToGlobal(pt);
+             ptm = event.target.localToGlobal(ptm);
+             //pt = panel_addq.globalToContent(pt);
+              ptm = this.globalToContent(ptm);
+              genTxt(ptm.x, ptm.y, ccontrol.htmlText,"main");                       
+            }
+             catch(error:Error) {     
+	        }               
+         }
+         
+	 public function genTxt(x:int, y:int, s:String, place:String ):*{ 
+	 	if(allowcreatertb ==true)
+           {    
+      	var control:RichTextEditor;
+        //control = new RichTextEditor() ;
+        control = new DragResizePanel();
+        control.id =  "rtb_edit";      	
+   		control.x = x
+   		control.y = y
+   		control.width = 326;   
+   		control.height = 193;   		
+   		control.enabled = true;   							 		   		
+   		control.addEventListener(KeyboardEvent.KEY_UP,onKeyUp);
+		this.addChild(control);  
+		control.htmlText = s; 
+		allowcreatertb = false;
+		  }     
+  		}
+  		
+        public function getresp(event:EventCommandFlex):*{ 
+      	//Alert.show("o venit ceva ev");
+      	if(event.command == AllCommands.RDF_SAVED_IN_BD) 
+      	{ 
+       Alert.show(event.args.toString());
+       }
+       if(event.command == AllCommands.NEW_FILEUPTIP) 
+       {   
+         if(event.args.toString()=="imgSmain"){
+         	this.imgS.visible=true;
+         } 
+         else if(event.args.toString()=="imgVmain"){
+         	this.imgV.visible=true;
+         }
+         else if(event.args.toString()=="imgPmain"){
+         	this.imgP.visible=true;
+         }         
+       }     
+       if(event.command == AllCommands.UPLOAD_COMPLETE) 
+      	{
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_QUESTION, resourceUpload.Question);
+			CentralComm.app.dispatchEvent(event);
+			//Alert.show("trimit question to java");	      		      
+        }    
+      }
+      
+      private function onKeyUp ( event:KeyboardEvent ):void { 
+        	try{                      
+            var dropItem:RichTextEditor;                
+            dropItem = (RichTextEditor(event.currentTarget));
+             var depth:int = dropItem.parent.getChildIndex(dropItem); 
+            if(event.keyCode == Keyboard.ENTER)
+            {           
+            ccontrol.htmlText = dropItem.htmlText; 
+                     
+            event.currentTarget.visible=false;
+            dropItem.parent.removeChildAt(depth);           
+            }
+            if(event.keyCode == Keyboard.ESCAPE)
+            {
+             ccontrol.htmlText = "click to add new text";
+                      
+            event.currentTarget.visible=false;
+            dropItem.parent.removeChildAt(depth);
+            }  
+            allowcreatertb = true;            
+         }
+         catch(error:Error){     
+	   }                 
+         }
+         
+         private function createContextMenuMain(dobj:Image):*{
+		 try {
+		 var cutItem:ContextMenuItem = new ContextMenuItem("Delete media file")
+		 cutItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menucommmain);
+		 cutItem.visible = true;	
+		  dobj.contextMenu = new ContextMenu();
+		  dobj.contextMenu.hideBuiltInItems();
+		  dobj.contextMenu.customItems.push(cutItem);		  
+		 } 
+		 catch (err:Error){
+			Alert.show(err.message);
+		 }
+		}
+		
+		private function menucommmain(event:ContextMenuEvent):void{
+		//Alert.show("din custom menu:" + event.mouseTarget.name.toString());
+		var name:String = event.mouseTarget.name.toString();
+		var ctrl:Image = event.mouseTarget as Image;
+					
+		 if (name == "imgV"){
+		 	 resourceUpload.VariantsTemp["main"].video_ref = null;
+		 	 ctrl.visible = false;		 	
+		 }
+		 else if (name == "imgS"){
+		 	 resourceUpload.VariantsTemp["main"].sound_ref = null;
+		 	 ctrl.visible = false;		 
+		 }
+		 else if (name == "imgP"){
+		 	 resourceUpload.VariantsTemp["main"].picture_ref = null;
+		 	 ctrl.visible = false;		 
+		 }               
+         
+		}
+         
+          public function FinalMap():void{
+          	
+			try{                
+           resourceUpload.VariantsTemp["rdb_true"] = new QuestionAnswerTemp(); 
+           resourceUpload.VariantsTemp["rdb_false"] = new QuestionAnswerTemp(); 
+          // resourceUpload.VariantsTemp["main"] = new QuestionAnswerTemp();    
+                 	
+          if(resourceUpload.VariantsTemp["rdb_true"]!=null)
+            {            	
+            	resourceUpload.VariantsTemp["rdb_true"].text = rdb_true.label;           
+            	resourceUpload.VariantsTemp["rdb_true"].validation = rdb_true.selected.toString();           
+           	}
+         if(resourceUpload.VariantsTemp["rdb_false"]!=null)
+            {             
+            	resourceUpload.VariantsTemp["rdb_false"].validation = rdb_false.selected.toString();
+            	resourceUpload.VariantsTemp["rdb_false"].text = rdb_false.label         
+           	}
+           
+           	
+           	if(resourceUpload.VariantsTemp["main"]!=null)
+            {             
+       	    if(resourceUpload.VariantsTemp["main"].picture_ref != null)
+      		  {
+			resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp["main"].picture_ref);
+        	  }
+        	if(resourceUpload.VariantsTemp["main"].video_ref != null)
+      		  {
+			resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp["main"].video_ref);
+      		  }
+      		if(resourceUpload.VariantsTemp["main"].sound_ref != null)
+      		  {
+			resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp["main"].sound_ref);					
+      		  }
+            }
+            
+           	var variant:StructureQuestionVariants = new StructureQuestionVariants()
+           	
+			variant.text = resourceUpload.VariantsTemp["rdb_true"].text;
+           	variant.validation = resourceUpload.VariantsTemp["rdb_true"].validation;           	           	
+           	resourceUpload.Question.variants.push(variant);
+           	
+           	variant.text = resourceUpload.VariantsTemp["rdb_false"].text;
+           	variant.validation = resourceUpload.VariantsTemp["rdb_false"].validation;           	           	
+           	resourceUpload.Question.variants.push(variant);                             
+          
+                  
+		} catch (err:Error) {
+				Alert.show("final map:"+err.message);
+			}
+        }
+        
+          public function sendData():void { 	
+			try {												
+				resourceUpload.Question.subsection = fr.semantic_learning.semquiz.utils.HomeProfData.selected_subsection;				
+				resourceUpload.Question.type = fr.semantic_learning.semquiz.utils.HomeProfData.question_type;
+				resourceUpload.Question.evaluationTime = fr.semantic_learning.semquiz.utils.HomeProfData.response_time;
+				resourceUpload.Question.evaluationType = fr.semantic_learning.semquiz.utils.HomeProfData.evaluation_type;
+				resourceUpload.Question.competence = fr.semantic_learning.semquiz.utils.HomeProfData.selected_competence;
+				resourceUpload.Question.units = fr.semantic_learning.semquiz.utils.HomeProfData.selected_unit;				
+				resourceUpload.Question.author = CentralComm.currentUser.id;
+				resourceUpload.Question.data = new Date().getDate().toString(); 
+				resourceUpload.Question.language = CentralComm.currentUser.language;
+				resourceUpload.Question.text = lbl_text.htmlText;
+				
+				if(resourceUpload.VariantsTemp["main"]!=null)
+                {
+				if(resourceUpload.VariantsTemp["main"].picture_ref != null)
+          		  {
+				resourceUpload.Question.picture = resourceUpload.VariantsTemp["main"].picture;
+            	  }
+            	if(resourceUpload.VariantsTemp["main"].video_ref != null)
+          		  {
+				resourceUpload.Question.video =  resourceUpload.VariantsTemp["main"].video;
+          		  }
+          		if(resourceUpload.VariantsTemp["main"].sound_ref != null)
+          		  {
+				resourceUpload.Question.sound = resourceUpload.VariantsTemp["main"].sound;					
+          		  }
+          		}
+				resourceUpload.Question.variants = new Array();						
+				FinalMap();	
+				resourceUpload.sent = false;
+				resourceUpload.gowrite();
+				//resourceUpload.writeResourcesToServer("0" as int);	
+				 
+			} catch (err:Error) {
+				Alert.show("send:" + err.getStackTrace());
+			}							        	                           
+        }
+          
+        ]]>
+   </mx:Script>    
+</mx:Canvas>

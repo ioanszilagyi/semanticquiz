@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas  xmlns:mx="http://www.adobe.com/2006/mxml"   creationComplete="init();" >
+
+<mx:Script>
+     <![CDATA[      
+	  import fr.semantic_learning.semquiz.valueobjects.StructureQuestion;
+	  import fr.semantic_learning.semquiz.valueobjects.StructureQuestionVariants;
+	  import fr.semantic_learning.semquiz.UploadFiles;
+	  import fr.semantic_learning.events.ComMsgToJava;
+	  
+      import mx.collections.ArrayCollection;
+      import mx.core.*;
+      import mx.containers.*;
+      import mx.managers.*;
+      import mx.events.*;
+      import mx.controls.*;
+      import mx.states.*;      
+      import flash.net.FileFilter;
+     
+	  import mx.utils.*;
+	  import mx.messaging.events.*;
+	  import mx.messaging.messages.AsyncMessage;		
+	  import mx.rpc.events.FaultEvent;
+          
+      import fr.semantic_learning.semquiz.commands.AllCommands;
+	  import fr.semantic_learning.semquiz.CentralComm;
+	  import mx.core.Container; 
+	  import fr.semantic_learning.semquiz.utils.HomeProfData;
+	  import fr.semantic_learning.events.*;
+	  import fr.semantic_learning.semquiz.utils.*;
+	  import fr.semantic_learning.semquiz.utils.DragResizePanel;
+	
+      import flash.display.Sprite;
+	  import flash.events.MouseEvent;
+	      
+      [SWF(frameRate=30)]  
+          
+      private var X:int = 10;
+      private var Y:int = 45;
+      private var controlcount:int = 0;      
+      private var al:ArrayCollection = new ArrayCollection();
+	  private var ccontrol:Label;
+	  private var allowcreatertb:Boolean = true;
+	  
+      [Bindable] private var controls:ArrayCollection = new ArrayCollection();
+      
+      [Embed(source="/img/image.png")]
+      [Bindable] public var LogoP:Class;   
+      
+      [Embed(source="/img/movie.png")]
+      [Bindable] public var LogoV:Class;
+      
+      [Embed(source="/img/music.png")]
+      [Bindable] public var LogoS:Class;   
+       
+      private var resourceUpload:UploadFiles;
+      
+        public function change_view(screen:String) :*
+ 		{
+ 			switch(screen)
+ 			{
+ 				case "back": 				
+				//CentralComm.app.workflowState = AllCommands.CREATE_QUESTION;
+				break;
+				default: 			 
+ 			}		
+ 		}
+      public function init():*{   
+       btn_media.addEventListener(MouseEvent.CLICK, onClick3);
+       lbl_text.addEventListener(MouseEvent.CLICK, onClickmain );
+       this.addEventListener(AllCommands.RDF_SAVED_IN_BD, getresp);  
+       this.addEventListener(AllCommands.UPLOAD_COMPLETE, getresp); 
+       this.addEventListener(AllCommands.NEW_FILEUPTIP, getresp); 
+       CentralComm.app = Application.application as main;	   			
+	   resourceUpload = new UploadFiles();  
+	   createContextMenuMain(this.imgP);
+	   createContextMenuMain(this.imgV);
+	   createContextMenuMain(this.imgS);    
+       genSqr();      
+       delprint();  
+      // createContextMenu(); 
+      // resourceUpload.VariantsTemp["main"] = new QuestionAnswerTemp();         
+      }      
+		
+      public function getresp(event:EventCommandFlex):*{ 
+      	
+      if(event.command == AllCommands.RDF_SAVED_IN_BD) 
+       { 
+       Alert.show(event.args.toString());
+       }  
+       if(event.command == AllCommands.NEW_FILEUPTIP) 
+       {   
+         if(event.args.toString()=="imgSmain"){
+         	this.imgS.visible=true;
+         } 
+         else if(event.args.toString()=="imgVmain"){
+         	this.imgV.visible=true;
+         }
+         else if(event.args.toString()=="imgPmain"){
+         	this.imgP.visible=true;
+         }	
+         else{       	
+       	panel_addq.getChildByName(event.args.toString()).visible = true;
+         }
+       }  
+      if(event.command == AllCommands.UPLOAD_COMPLETE) 
+       {
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_QUESTION, resourceUpload.Question);
+			CentralComm.app.dispatchEvent(event);
+			//Alert.show("trimit question to java");	      		      
+       }    
+      }
+      
+       public function delprint():*{
+       	try{
+       	var ctrl:DisplayObject; 
+       	var count:int;
+        Y = 45;
+        count = 0; 
+      	 for each(var target:* in panel_addq.getChildren()){           	 
+           if ((target as DisplayObject).name.indexOf("_donot") == -1){           	            	  
+           	  panel_addq.removeChild(target);
+           	}
+           } 
+         for (var i:int =0;i<controls.length;i++)
+           {           	         	
+           	ctrl = (controls[i] as DisplayObject); 
+           	if(ctrl != null)
+           	{                      
+           	 if(count==7){           
+            	Y+=25;
+            	count=0;
+            	} 
+            ctrl.y = Y;                               	         	
+            panel_addq.addChild(ctrl);
+            count++; 
+            }           	         	                      	
+           } 
+            fr.semantic_learning.semquiz.utils.HomeProfData.controls = controls;
+        }
+        catch(e:Error){
+        	Alert.show(e.message);
+        }        
+       }
+      
+       private function newv ():void{                 
+            genSqr(); 
+            delprint();
+         }
+       
+
+      public function genSqr():*{   
+       var control:Object;            	
+
+       for (var i:Number = 0 ; i < 1 ; ++i) {            
+        control=new Button();
+        control.id = "btndel_" + controlcount.toString();
+        control.name = "btndel_" + controlcount.toString();
+   		control.label = "X";
+   		control.x = X;   		 		
+   		control.addEventListener( MouseEvent.CLICK, onClick4);   		
+        controls.addItem(control);
+      // }
+      // for (var i:Number = 0 ; i < 1 ; ++i) {            
+       // control=new TextInput();
+        control=new Label();
+        control.id = "txt_" + controlcount.toString();
+        control.name = "txt_" + controlcount.toString();
+   		control.text = "click to add new text";
+   		control.x = X + 50;   		
+   		control.width = 230;   		  		
+   		control.addEventListener( MouseEvent.CLICK, onClick );
+   		//control.addEventListener(KeyboardEvent.KEY_UP,onKeyUp);
+   		control.addEventListener(FocusEvent.FOCUS_OUT,onFocusLose);        
+        controls.addItem(control);
+      // }  
+      // for (var i:Number = 0 ; i < 1 ; ++i) {            
+        control=new RadioButton()
+        control.id = "vld_" + controlcount.toString();
+        control.name = "vld_" + controlcount.toString();
+   		control.label = "True";
+   		control.x = X  + 300;   		   		   		
+   		//control.addEventListener( MouseEvent.CLICK, onClick2 );        
+        controls.addItem(control);
+     //  }        
+      // for (var i:Number = 0 ; i < 1 ; ++i) {            
+        control=new Button();
+        control.id = "btn_" + controlcount.toString();
+        control.name = "btn_" + controlcount.toString();
+   		control.label = "Add media";
+   		control.x = X  + 350;   			
+   		control.addEventListener( MouseEvent.CLICK, onClick3);        
+        controls.addItem(control); 
+        
+        control=new Image();
+        control.id = "imgV_" + controlcount.toString();
+        control.name = "imgV_" + controlcount.toString();
+        control.source = LogoV;
+   		control.x = X  + 450;	
+   		control.visible = false;	 
+   		control.addEventListener( MouseEvent.CLICK,onClickMenu);  
+   		createContextMenu(control as Image);  
+        controls.addItem(control);
+                                    
+        control=new Image();
+        control.id = "imgS_" + controlcount.toString();
+        control.name = "imgS_" + controlcount.toString();
+        control.source = LogoS;
+   		control.x = X  + 480;
+   		control.visible = false;	
+   		control.addEventListener( MouseEvent.CLICK,onClickMenu); 
+   		createContextMenu(control as Image);  	      
+        controls.addItem(control);
+                       
+        control=new Image();
+        control.id = "imgP_" + controlcount.toString();
+        control.name = "imgP_" + controlcount.toString();
+        control.source = LogoP;
+   		control.x = X  + 510;	
+   		control.visible = false;
+   		control.addEventListener( MouseEvent.CLICK,onClickMenu);  
+   		createContextMenu(control as Image);    			      
+        controls.addItem(control);       
+       }       
+
+/*        for (var i:Number = 0 ; i < 3 ; ++i) {
+       	var xadd:int=0;              
+        control=new Image();
+        control.id = "img_" + controlcount.toString();
+        control.name = "img_" + controlcount.toString();
+   		control.x = X  + 450 + xadd;		      
+        controls.addItem(control); 
+        xadd +=50;
+        controlcount++  
+                    
+       } */        
+      // resourceUpload.VariantsTemp["_"+controlcount.toString()] = new QuestionAnswerTemp();
+       if(resourceUpload.VariantsTemp["_" +  controlcount.toString()] == null)
+       {
+        resourceUpload.VariantsTemp["_" +  controlcount.toString()] = new QuestionAnswerTemp(); 
+       }   
+       controlcount++;   
+       }
+       
+        public function genTxt(x:int, y:int, s:String, place:String ):*{ 
+        	if(allowcreatertb ==true)
+        	{      
+      	// control = new RichTextEditor() ;
+      	var control:RichTextEditor;
+      	control = new DragResizePanel();       
+        control.id =  "rtb_edit";      	
+   		control.x = x
+   		control.y = y
+   		control.width = 326;   
+   		control.height = 193;	
+   		//control.focusEnabled = true;
+   		control.enabled = true;    	
+   							 		   		
+   		control.addEventListener(KeyboardEvent.KEY_UP,onKeyUp);
+   		//control.addEventListener(FocusEvent.FOCUS_OUT,onFocusLose);
+   		switch(place)
+   		{
+   			case "panel" :   			   
+              // pt = panel_addq.globalToContent(pt);
+              // control.x = pt.x
+   			   //control.y = pt.y
+					panel_addq.addChild(control);  
+			break;
+			case "main" :
+			   //pt = main.globalToContent(pt);
+			   //control.x = pt.x
+   			   //control.y = pt.y
+					this.addChild(control);  
+			break;
+   		}	
+   		                  
+        control.htmlText = s; 
+        allowcreatertb = false;
+        	}
+        //control.setSelection(0, control.text.length);
+        //control.setFocus();          
+       }  
+     
+         private function onClick3 ( event:MouseEvent ):void {          
+         //  browseAndUpload();
+         var btn:Button = Button(event.currentTarget);       
+         var s:String = btn.id.substring(btn.id.indexOf("_"),btn.id.length);
+         var id:String = btn.id;
+         //resourceUpload.addResource(s,"");
+         if(id=="btn_media")
+         {
+           resourceUpload.addResource("main");
+         }
+         else
+         {
+         	 resourceUpload.addResource(s);
+         } 
+                    
+         }
+
+         private function onClick4 ( event:MouseEvent ):void {         	
+         try{
+          var btn:Button = Button(event.currentTarget);       
+          var s:String = btn.id.substring(btn.id.indexOf("_"),btn.id.length);
+           for each(var target:* in panel_addq.getChildren()){
+           if ((target as DisplayObject).name.indexOf(s) > 0){           	 
+           for each(var t:* in controls.toArray()){           	 
+           if ((t as DisplayObject).name.indexOf(s) >0){        	  
+           	   controls.removeItemAt(controls.getItemIndex(t));           	  
+           	}
+           }            
+           	}
+           }            
+           delprint(); 
+           deleteMediaResource(btn.name);
+         }
+           catch(e:Error){
+        	Alert.show(e.message);
+        }
+         }           
+         		
+		 private function onClickMenu (event:MouseEvent ):void { 
+          	try
+        	{  
+/* 			 var m:Menu = Menu.createMenu(
+			 m.addMenuItem("Open");
+			 m.addMenuItem("Leave");
+        	 ccontrol = (event.currentTarget as Label);         
+             var item:Label;
+             var pt:Point = new Point(event.localX, event.localY);             
+             pt = event.target.localToGlobal(pt);            
+              pt = panel_addq.globalToContent(pt);
+              m.show(pt.x, pt.y);  */                                    
+            }
+             catch(error:Error) {     
+	        }               
+         }	
+         	 				       
+         private function onClick (event:MouseEvent ):void { 
+          	try
+        	{   
+        	 ccontrol = (event.currentTarget as Label);         
+             var item:Label;
+             var pt:Point = new Point(event.localX, event.localY);
+             // pt = event.target.localToGlobal(pt);
+             pt = event.target.localToGlobal(pt);
+            // pt = panel_addq.globalToContent(pt);
+              pt = panel_addq.globalToContent(pt);
+              genTxt(pt.x, pt.y ,ccontrol.htmlText,"panel");                       
+            }
+             catch(error:Error) {     
+	        }               
+         }
+         private function onClickmain (event:MouseEvent ):void { 
+          	try
+        	{   
+        	 ccontrol = (event.currentTarget as Label);         
+             var item:Label;
+             var ptm:Point = new Point(event.localX, event.localY);
+             // pt = event.target.localToGlobal(pt);
+             ptm = event.target.localToGlobal(ptm);
+             //pt = panel_addq.globalToContent(pt);
+              ptm = this.globalToContent(ptm);
+              genTxt(ptm.x, ptm.y, ccontrol.htmlText,"main");                       
+            }
+             catch(error:Error) {     
+	        }               
+         }
+         private function onFocusLose (event:FocusEvent ):void { 
+          	try
+        	{
+        		
+          	var dropItem:RichTextEditor;                
+            dropItem = (RichTextEditor(event.currentTarget));
+            ccontrol.htmlText = dropItem.htmlText;
+            var depth:int = dropItem.parent.getChildIndex(dropItem);           
+            event.currentTarget.visible=false;
+            dropItem.parent.removeChildAt(depth);       
+            }
+             catch(error:Error) {     
+	        }              
+         }
+         private function onKeyUp ( event:KeyboardEvent ):void { 
+        	try{                      
+            var dropItem:RichTextEditor;                
+            dropItem = (RichTextEditor(event.currentTarget));
+             var depth:int = dropItem.parent.getChildIndex(dropItem); 
+            if(event.keyCode == Keyboard.ENTER)
+            {           
+            ccontrol.htmlText = dropItem.htmlText; 
+                     
+            event.currentTarget.visible=false;
+            dropItem.parent.removeChildAt(depth);           
+            }
+            if(event.keyCode == Keyboard.ESCAPE)
+            {
+             ccontrol.htmlText = "click to add new text";
+                      
+            event.currentTarget.visible=false;
+            dropItem.parent.removeChildAt(depth);
+            }
+            
+            allowcreatertb = true; 
+         }
+         catch(error:Error){     
+	   }                 
+         }
+         
+        public function deleteMediaResource(name:String):void{       		
+		var s:String = name.substring(name.indexOf("_"),name.length);		
+		resourceUpload.VariantsTemp[s].video_ref = null;
+		resourceUpload.VariantsTemp[s].picture_ref = null;
+		resourceUpload.VariantsTemp[s].sound_ref = null;
+         }
+         
+         
+        public function FinalMap():void{
+			try{ 			
+            for each(var target:DisplayObject in panel_addq.getChildren()){
+            var s:String = target.name.substring(target.name.indexOf("_"),target.name.length);
+            
+          if (target.name == ("vld"+s)){          	
+          if(resourceUpload.VariantsTemp[s]!=null)
+            {
+            resourceUpload.VariantsTemp[s].validation = (target as RadioButton).selected.toString();           
+           	}
+           }
+           
+          if (target.name == ("txt"+s)){          	
+          if(resourceUpload.VariantsTemp[s]!=null)
+            {
+            resourceUpload.VariantsTemp[s].text = (target as Label).htmlText;
+            if(resourceUpload.VariantsTemp[s].sound_ref != null)
+            {
+            resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp[s].sound_ref);          
+            }
+            if(resourceUpload.VariantsTemp[s].picture_ref != null)
+            {
+            resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp[s].picture_ref);           
+            }
+            if(resourceUpload.VariantsTemp[s].video_ref != null)
+            {
+            resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp[s].video_ref);                             
+           	}
+           	
+           	if(resourceUpload.VariantsTemp["main"]!=null)
+            {
+       	    if(resourceUpload.VariantsTemp["main"].picture_ref != null)
+      		  {
+			resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp["main"].picture_ref);
+        	  }
+        	if(resourceUpload.VariantsTemp["main"].video_ref != null)
+      		  {
+			resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp["main"].video_ref);
+      		  }
+      		if(resourceUpload.VariantsTemp["main"].sound_ref != null)
+      		  {
+			resourceUpload.resourcesToUpload.addItem(resourceUpload.VariantsTemp["main"].sound_ref);					
+      		  }
+            }
+           	var variant:StructureQuestionVariants = new StructureQuestionVariants()
+           	variant.text = resourceUpload.VariantsTemp[s].text;
+           	variant.validation = resourceUpload.VariantsTemp[s].validation;
+           	variant.picture = resourceUpload.VariantsTemp[s].picture;
+           	variant.video = resourceUpload.VariantsTemp[s].video;
+           	variant.sound = resourceUpload.VariantsTemp[s].sound;           	
+           	resourceUpload.Question.variants.push(variant);
+            // Alert.show("adaug variantele:" + s);
+           }          
+          }                     
+           } 
+           //	Alert.show("lung:"+resourceUpload.resourcesToUpload.length);          
+		} catch (err:Error) {
+				Alert.show("final map:"+err.message);
+			}
+        }
+
+		private function createContextMenu(dobj:Image):*{
+		 try {
+		 var cutItem:ContextMenuItem = new ContextMenuItem("Delete media file")
+		 cutItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menucomm);
+		 cutItem.visible = true;	
+		  dobj.contextMenu = new ContextMenu();
+		  dobj.contextMenu.hideBuiltInItems();
+		  dobj.contextMenu.customItems.push(cutItem);		  
+		 } 
+		 catch (err:Error){
+			Alert.show(err.message);
+		 }
+		}
+
+		private function menucomm(event:ContextMenuEvent):void{
+		//Alert.show("din custom menu:" + event.mouseTarget.name.toString());
+		var name:String = event.mouseTarget.name.toString();
+		var ctrl:Image = event.mouseTarget as Image;
+		var s:String = name.substring(name.indexOf("_"),name.length);
+				
+		 if (name.indexOf("imgV") >=0){
+		 	 resourceUpload.VariantsTemp[s].video_ref = null;
+		 	 ctrl.visible = false;		 			 	  
+		 }
+		else if (name.indexOf("imgS") >=0){
+		 	 resourceUpload.VariantsTemp[s].sound_ref = null;
+		 	 ctrl.visible = false;		 	
+		 }
+		else if (name.indexOf("imgP") >=0){
+		 	 resourceUpload.VariantsTemp[s].picture_ref = null;
+		 	 ctrl.visible = false;		 	
+		 }               
+         
+		}
+		private function createContextMenuMain(dobj:Image):*{
+		 try {
+		 var cutItem:ContextMenuItem = new ContextMenuItem("Delete media file")
+		 cutItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menucommmain);
+		 cutItem.visible = true;	
+		  dobj.contextMenu = new ContextMenu();
+		  dobj.contextMenu.hideBuiltInItems();
+		  dobj.contextMenu.customItems.push(cutItem);		  
+		 } 
+		 catch (err:Error){
+			Alert.show(err.message);
+		 }
+		}
+		
+		private function menucommmain(event:ContextMenuEvent):void{
+		//Alert.show("din custom menu:" + event.mouseTarget.name.toString());
+		var name:String = event.mouseTarget.name.toString();
+		var ctrl:Image = event.mouseTarget as Image;
+					
+		 if (name == "imgV"){
+		 	 resourceUpload.VariantsTemp["main"].video_ref = null;
+		 	 ctrl.visible = false;		 	
+		 }
+		 else if (name == "imgS"){
+		 	 resourceUpload.VariantsTemp["main"].sound_ref = null;
+		 	 ctrl.visible = false;		 
+		 }
+		 else if (name == "imgP"){
+		 	 resourceUpload.VariantsTemp["main"].picture_ref = null;
+		 	 ctrl.visible = false;		 
+		 }               
+         
+		}
+
+
+            public function sendData():void { 	
+			try {
+				//go and upload the file to the server				
+ 			    //	
+ 			    									
+				resourceUpload.Question.subsection = fr.semantic_learning.semquiz.utils.HomeProfData.selected_subsection;				
+				resourceUpload.Question.type = fr.semantic_learning.semquiz.utils.HomeProfData.question_type;
+				resourceUpload.Question.evaluationTime = fr.semantic_learning.semquiz.utils.HomeProfData.response_time;
+				resourceUpload.Question.evaluationType = fr.semantic_learning.semquiz.utils.HomeProfData.evaluation_type;
+				resourceUpload.Question.competence = fr.semantic_learning.semquiz.utils.HomeProfData.selected_competence;
+				resourceUpload.Question.units = fr.semantic_learning.semquiz.utils.HomeProfData.selected_unit;				
+				resourceUpload.Question.author = CentralComm.currentUser.id;
+				resourceUpload.Question.data = new Date().getDate().toString(); 
+				resourceUpload.Question.language = CentralComm.currentUser.language;				
+				resourceUpload.Question.text = lbl_text.htmlText;
+				
+				if(resourceUpload.VariantsTemp["main"]!=null)
+                {
+				if(resourceUpload.VariantsTemp["main"].picture_ref != null)
+          		  {
+				resourceUpload.Question.picture = resourceUpload.VariantsTemp["main"].picture;
+            	  }
+            	if(resourceUpload.VariantsTemp["main"].video_ref != null)
+          		  {
+				resourceUpload.Question.video =  resourceUpload.VariantsTemp["main"].video;
+          		  }
+          		if(resourceUpload.VariantsTemp["main"].sound_ref != null)
+          		  {
+				resourceUpload.Question.sound = resourceUpload.VariantsTemp["main"].sound;					
+          		  }
+          		}
+				resourceUpload.Question.variants = new Array();						
+				FinalMap();	
+				resourceUpload.sent = false;
+				resourceUpload.gowrite();
+				//resourceUpload.writeResourcesToServer("0" as int);	
+				 
+			} catch (err:Error) {
+				Alert.show("send:" + err.getStackTrace());
+			}							        	                           
+        }
+     
+    ]]>
+   </mx:Script>
+   
+ <mx:VBox height="100%"> 
+  <mx:Label x="6" y="10" text="Question text" fontWeight="bold"/>
+  <mx:Label x="10" y="29" text="click to add question text text" width="624" height="45" id="lbl_text"/>	
+ <mx:HBox>
+ 	<mx:Button x="13" y="91" label="Add media" id="btn_media"  />	
+	<mx:Image id="imgV" name="imgV" x="108" y="91" height="23" width="27" source = "{LogoV}" visible="false" />
+	<mx:Image id="imgS" name="imgS" x="143" y="91" height="23" width="27" source = "{LogoS}" visible="false" />
+	<mx:Image id="imgP" name="imgP" x="178" y="91" height="23" width="27" source = "{LogoP}" visible="false" />
+	 </mx:HBox>
+	    
+	<mx:Canvas x="10" y="121" id="panel_addq" >
+	    <mx:Button x="77" y="10" label="New" id="btn_donot0" click="newv();"/>
+		<mx:Label x="10" y="10" text="Answers" color="#000000" id="lbl_donot0" fontWeight="bold"/>	
+	</mx:Canvas>
+	<mx:Button x="92" y="402" label="save" click="sendData();"/>
+ </mx:VBox>
+</mx:Canvas>
+

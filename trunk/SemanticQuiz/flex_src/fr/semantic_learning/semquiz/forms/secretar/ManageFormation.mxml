@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="Formation"
+	initialize="init();">
+
+
+<mx:Script>
+	<![CDATA[
+		import fr.semantic_learning.semquiz.valueobjects.StructureFormation;
+		
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import fr.semantic_learning.semquiz.CentralComm;
+		import fr.semantic_learning.events.EventCommandFlex;
+		import mx.controls.Alert;
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import mx.managers.CursorManager;
+		import mx.core.Application;
+	
+		public function init():void
+		{
+			CentralComm.app = Application.application as main;
+			this.addEventListener(AllCommands.RETURN_FORMATIONS, manageEvent);
+			
+		}
+		public function getFormations():void
+		{
+			var getFormationsEvent:EventCommandFlex = new EventCommandFlex(AllCommands.GET_FORMATIONS, "MyFormations");
+			CentralComm.app.dispatchEvent(getFormationsEvent);
+			CursorManager.setBusyCursor();			
+		}
+		
+		public function addNewFormation(title:String, num_ani:String, shortTitle:String):void
+		{
+			var newFormation:StructureFormation = new StructureFormation(title, num_ani, shortTitle);
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_FORMATION ,newFormation);
+			CentralComm.app.dispatchEvent(event);
+			
+			 
+		}
+		
+		public function manageEvent(event:EventCommandFlex):void
+		{
+			var arrFormations:Array = new Array();
+			arrFormations = event.args as Array;
+			
+			CursorManager.removeBusyCursor();
+			
+		}
+			
+	]]>
+</mx:Script>
+	<mx:TextInput x="49" y="46" text="Formation Title" id="textInputTitleFormation" width="171"/>
+	<mx:NumericStepper x="162" y="115" value="2" id="nrAni" minimum="1" maximum="5"/>
+	<mx:Text x="10" y="115" text="Total Number of Years"/>
+	<mx:Text x="10" y="46" text="Title"/>
+	<mx:Button x="109" y="156" label="Add Formation" id="addNewFormationBtn" click="addNewFormation(textInputTitleFormation.text, nrAni.value.toString(),formationShortTextInput.text)"/>
+	<mx:Text x="10" y="10" text="Add New Formation:"/>
+	<mx:TextInput x="49" y="81" text="Short Title" id="formationShortTextInput" width="171"/>
+	<mx:Text x="2" y="81" text="Short"/>
+	
+</mx:Canvas>

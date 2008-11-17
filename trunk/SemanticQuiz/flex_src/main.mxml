@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:control="fr.semantic_learning.semquiz.*"
+	xmlns:forms="fr.semantic_learning.semquiz.forms.*"
+	layout="horizontal"
+	applicationComplete="init();">
+	
+	<mx:Style>
+		Label {
+			fontSize:12;
+		}
+	</mx:Style>
+	
+	<!-- Add the Front Controller here -->
+	<control:CentralComm/>
+	
+	<mx:Script>
+		<![CDATA[
+
+			import fr.semantic_learning.events.EventCommandFlex;
+			
+			import mx.events.CloseEvent;
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			import mx.core.Container;
+			import mx.collections.ArrayCollection;
+			import fr.semantic_learning.semquiz.CentralComm;
+			import mx.controls.Alert;
+			import mx.utils.UIDUtil;			
+
+			[Bindable]
+			public var workflowState:uint;
+			[Bindable]
+			public var clientID:String;
+			
+			private function init():void {
+				clientID = UIDUtil.createUID();
+				//mainBtnBar.getChildAt(0).visible = false;
+			} 
+
+			public function getView(workflowState:Number):Container
+ 			{
+				switch (workflowState)
+				{
+					case AllCommands.LOGIN_SCREEN:			
+						return login;		
+					case AllCommands.HOME_ADMIN:
+						return homeAdmin;
+					case AllCommands.HOME_SECRETAR:
+						return homeSecretar;
+					case AllCommands.HOME_PROF:
+						return homeProf;					
+					case AllCommands.HOME_STUDENT:
+						return homeStudent;				
+					default:
+						return login;
+				}
+			}
+			
+			public function changeMenu():void {	
+				try {					
+					switch (appView.selectedChild) {
+						case login:			
+						break;		
+						case homeAdmin:
+							homeBtnBar.dataProvider = homeAdmin.adminStack;							
+							if (!CentralComm.rightsUserAdmin) {
+								CentralComm.app.homeBtnBar.removeAllChildren();
+								CentralComm.app.homeAdmin.home.visible = true;
+								CentralComm.app.homeAdmin.adminStack.selectedChild = CentralComm.app.homeAdmin.home;
+							} else {
+								CentralComm.app.homeBtnBar.getChildAt(0).visible = false;
+								CentralComm.app.homeAdmin.home.visible = false;
+							}
+						break;
+						case homeSecretar:
+							homeBtnBar.dataProvider = homeSecretar.secretarStack;
+							if (!CentralComm.rightsUserSecretar) {
+								CentralComm.app.homeBtnBar.removeAllChildren();
+								CentralComm.app.homeSecretar.home.visible = true;
+								CentralComm.app.homeSecretar.secretarStack.selectedChild = CentralComm.app.homeSecretar.home;								
+							} else {
+								CentralComm.app.homeBtnBar.getChildAt(0).visible = false;
+								CentralComm.app.homeSecretar.home.visible = false;
+							}						
+						break;
+						case homeProf:
+							homeBtnBar.dataProvider = homeProf.profStack;
+							if (!CentralComm.rightsUserProf) {
+								CentralComm.app.homeBtnBar.removeAllChildren();
+								CentralComm.app.homeProf.home.visible = true;
+								CentralComm.app.homeProf.profStack.selectedChild = CentralComm.app.homeProf.home;																
+							} else {
+								CentralComm.app.homeBtnBar.getChildAt(0).visible = false;
+								CentralComm.app.homeProf.home.visible = false;
+							}							
+						break;
+						case homeStudent:
+							homeBtnBar.dataProvider = homeStudent.studentStack;
+							if (!CentralComm.rightsUserStudent) {
+								CentralComm.app.homeBtnBar.removeAllChildren();
+								CentralComm.app.homeStudent.home.visible = true;
+								CentralComm.app.homeStudent.studentStack.selectedChild = CentralComm.app.homeStudent.home;								
+							} else {
+								CentralComm.app.homeBtnBar.getChildAt(0).visible = false;
+								CentralComm.app.homeStudent.home.visible = false;
+								
+								CentralComm.app.homeBtnBar.getChildAt(3).visible = false;
+							}							
+						break;					
+						default:
+						break;
+					}
+				} catch (e:Error) {
+					Alert.show(e.message);
+				}
+			}
+					
+			public function signOut():void
+			{
+				Alert.show("Are you sure?", "Confirmation", (Alert.YES | Alert.NO), null, reset);
+			}
+		
+			public function reset(event:CloseEvent):void
+			{
+				if (event.detail == Alert.YES){
+					hBoxMain.width = 0;
+					hBoxMain.height = 0;
+					
+					login.width = 400;
+					login.height = 200;
+					login.visible = true;
+					
+					CentralComm.currentUser.isAuthenticated = false;
+					homeBtnBar.visible = false;
+					mainBtnBar.visible = false;
+					appStatusText.text = "Enter Username and Password to Sign in!";
+					appSignOutBtn.visible = false;
+					
+					CentralComm.setAllRightsToFalse();
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:ApplicationControlBar id="appControlBar" dock="true">
+		<mx:HBox width="80%">	
+			<mx:ToggleButtonBar toggleOnClick="true" id="mainBtnBar" dataProvider="appView" visible="false"/>
+		</mx:HBox>
+		<mx:HBox width="10%">
+			<mx:Text id="appStatusText"/>				
+		</mx:HBox>
+		<mx:HBox horizontalAlign="right" width="10%">
+			<mx:Button id="appSignOutBtn" label="Sign Out" click="signOut();"/>
+		</mx:HBox>		
+	</mx:ApplicationControlBar>
+	
+	<forms:Login id="login" width="306" height="155"/>
+	
+	<mx:HBox id="hBoxMain" horizontalAlign="left" verticalAlign="top" width="0" height="0">
+		
+	<mx:ToggleButtonBar direction="vertical" id="homeBtnBar" verticalGap="5" visible="false"/>
+		
+	<mx:ViewStack
+		creationPolicy="all"
+		resizeToContent="true"
+		id="appView" 
+		visible="false"
+		change="changeMenu();">
+	
+	    <forms:HomeAdmins id="homeAdmin"/>
+	    <forms:HomeSecretar id="homeSecretar"/>
+	    <forms:HomeProf id="homeProf"/>
+	    <forms:HomeStudents id="homeStudent"/>        
+	</mx:ViewStack>
+	
+    </mx:HBox>
+			
+</mx:Application>

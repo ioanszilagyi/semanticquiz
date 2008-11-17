@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="Parcours"
+	initialize="init();">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.Container;
+			import fr.semantic_learning.semquiz.valueobjects.StructureParcours;
+			import fr.semantic_learning.semquiz.valueobjects.StructureUser;
+			import fr.semantic_learning.semquiz.valueobjects.StructureMention;
+			import fr.semantic_learning.semquiz.valueobjects.StructureSpecialization;
+			import fr.semantic_learning.semquiz.valueobjects.StructureFormation;
+			
+			
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			import fr.semantic_learning.semquiz.CentralComm;
+			import fr.semantic_learning.events.EventCommandFlex;
+			import mx.controls.Alert;
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			import mx.managers.CursorManager;
+			import mx.core.Application;
+			
+			public var newParcours:StructureParcours = new StructureParcours("null", "null", "null", "null", "null", "null");
+		
+		public function init():void
+		{
+			CentralComm.app = Application.application as main;
+			
+			this.addEventListener(AllCommands.SELECT_USER, manageEventResp);
+			this.addEventListener(AllCommands.SELECT_MENTION, manageEventMention);
+			this.addEventListener(AllCommands.SELECT_FORMATION, manageEventFormation);			
+			this.addEventListener(AllCommands.SELECT_SPECIALIZATION, manageEventSpecialization);
+			
+			
+			
+		}
+		
+		
+		public function addNewParcours(cod:String, title:String):void
+		{
+			
+			newParcours.cod = cod;
+			newParcours.title = title;
+			
+			var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_PARCOURS ,newParcours);
+			CentralComm.app.dispatchEvent(event);
+			
+			//infoText.text = newSpecialization.cod+";\n"+newSpecialization.title; 
+		}
+		
+		
+		public function getResp():void
+		{
+			if(responsableTextInput.text == "Search Responsable")
+			{
+				responsableTextInput.text = "";
+				responsableTextInput.setFocus();
+			}
+			var getResp:StructureUser = new StructureUser(responsableTextInput.text);
+			
+			getResp.role = "Professor";
+			getResp.familyName = responsableTextInput.text;
+			getResp.givenName = responsableTextInput.text;
+			
+			var getRespEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_USER, getResp);
+			CentralComm.app.dispatchEvent(getRespEvent);
+		}
+		
+		public function manageEventResp(event:EventCommandFlex):void
+		{
+			//Alert.show("a venit user in manage mention!");
+			var arrResp:Array = new Array();
+			arrResp = event.args as Array;
+			//infoText.text += arrMentions.toString();
+			CursorManager.removeBusyCursor();
+			//Alert.show(arrResp.length.toString());
+			responsableList.dataProvider = arrResp;
+			
+		}
+		
+		public function getFormation():void
+		{
+			var getFormation:StructureFormation = new StructureFormation("");
+			var getFormationEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_FORMATION, getFormation);
+			CentralComm.app.dispatchEvent(getFormationEvent);
+			
+		}
+		
+		public function manageEventFormation(event:EventCommandFlex):void
+		{
+			var arrFormation:Array = new Array();
+			arrFormation = event.args as Array;
+			CursorManager.removeBusyCursor();
+			//Alert.show(event.args.length.toString());
+			formationList.dataProvider = arrFormation;
+		}
+		
+		
+		public function getMention():void
+		{
+			if(formationList.selectedItems.length == 0)
+				{
+					Alert.show("Select Formation");
+					selectStack.selectedChild = setFormationInterface;
+					getFormation();
+					
+				} else {
+			
+			if(mentionTextInput.text == "Search Mention")
+			{
+				mentionTextInput.text = "";
+				mentionTextInput.setFocus();
+			}
+
+			//var getFormation:StructureFormation = new StructureFormation();
+			
+			var getMention:StructureMention = new StructureMention(mentionTextInput.text);
+			getMention.idFormation = formationList.selectedItem.id;
+			var getMentionEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_MENTION, getMention );
+			CentralComm.app.dispatchEvent(getMentionEvent);
+			
+		}
+		}
+		public function manageEventMention(event:EventCommandFlex):void
+		{
+			//Alert.show("a venit user in manage mention!");
+			var arrMention:Array = new Array();
+			arrMention = event.args as Array;
+			//infoText.text += arrMentions.toString();
+			CursorManager.removeBusyCursor();
+			
+			//Alert.show(arrResp.length.toString());
+			mentionList.dataProvider = arrMention;
+			
+		}
+		
+		
+		public function getSpecialization():void
+		{
+			
+			if(mentionList.selectedItems.length == 0)
+				{
+					Alert.show("Select Mention");
+					selectStack.selectedChild = setMentionInterface;
+					getMention();
+					
+				} else {
+			
+			if(specializationTextInput.text == "Search Specialization")
+			{
+				specializationTextInput.text = "";
+				specializationTextInput.setFocus();
+			}
+			//var getFormation:StructureFormation = new StructureFormation();
+			
+			var getSpecialization:StructureSpecialization = new StructureSpecialization(null, specializationTextInput.text);
+			getSpecialization.idMention = mentionList.selectedItem.id; 
+			var getSpecializationEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_SPECIALIZATION, getSpecialization );
+			
+			CentralComm.app.dispatchEvent(getSpecializationEvent);
+			
+		}
+		}
+		
+		public function manageEventSpecialization(event:EventCommandFlex):void
+		{
+			//Alert.show("a venit user in manage mention!");
+			var arrSpecialization:Array = new Array();
+			arrSpecialization = event.args as Array;
+			//infoText.text += arrMentions.toString();
+			CursorManager.removeBusyCursor();
+			
+			//Alert.show(arrResp.length.toString());
+			specializationList.dataProvider = arrSpecialization;
+			
+		}
+		
+		public function getLabelResp(user:StructureUser):String
+		{
+			return user.familyName;
+		}
+		
+		public function getLabelFormation(formation:StructureFormation):String
+		{
+			return formation.title;
+		}
+		
+		public function getLabelMention(mention:StructureMention):String
+		{
+			return mention.title;
+		}
+		public function getLabelSpecialization(specialization:StructureSpecialization):String
+		{
+			return specialization.title;
+		}
+		
+		public function setResponsable():void
+		{
+			setResponsableText.text = responsableList.selectedItem.familyName;
+			newParcours.idResp = responsableList.selectedItem.id;
+		}
+		public function setFormation():void
+		{
+			//getMention.idFormation = formationList.selectedItem.id;
+			setFormationText.text = formationList.selectedItem.title;
+			
+		}
+		
+		public function setMention():void
+		{
+			 
+			setMentionText.text = mentionList.selectedItem.title;
+			newParcours.idMention = mentionList.selectedItem.id;
+		}
+		
+		public function setSpecialization():void
+		{
+			
+			setSpecializationText.text = specializationList.selectedItem.title;
+			newParcours.idSpecialization = specializationList.selectedItem.id;
+		}
+		
+		public function previous():void
+		{
+			if(selectStack.selectedIndex > 0)
+			{
+				selectStack.selectedIndex = selectStack.selectedIndex - 1;
+			}	
+		}
+		
+		public function next():void
+		{
+			//Alert.show("Total: "+selectStack.getChildren().length.toString(), "Selected: "+(selectStack.selectedIndex + 1).toString());
+			
+			
+			if(selectStack.selectedIndex < selectStack.getChildren().length-1 )
+			{
+				selectStack.selectedIndex = selectStack.selectedIndex + 1;
+				//selectStack.selectedChild = Container(selectStack.getChildAt(selectStack.selectedIndex+1));		
+			}
+			
+			
+			
+		}
+		public function onChangeStack():void
+		{
+			
+			if(formationList.selectedItems.length == 0)
+				{
+					Alert.show("Select Formation");
+					selectStack.selectedChild = setFormationInterface;
+					
+				}
+				/* else if(mentionList.selectedItems.length == 0)
+				{
+					Alert.show("Select Mention");
+					selectStack.selectedChild = setMentionInterface;
+				}
+				
+				  else if (selectStack.selectedChild.label == "Mention" && (mentionList.selectedItems.length == 0))
+				{
+					Alert.show("Select Mention");
+					previous();
+				} else {
+					
+				}  */
+			//Alert.show(selectStack.selectedChild.label);
+			
+		
+			
+		}
+			
+			
+		]]>
+	</mx:Script>
+	
+	<mx:TextInput x="145" y="22" text="Code" id="textInputCodeParcours"/>
+	<mx:TextInput x="145" y="63" text="Title" id="textInputTitleParcours"/>
+	<mx:Button x="204" y="298" label="Add Parcours" click="addNewParcours(textInputCodeParcours.text, textInputTitleParcours.text)" id="addNewParcoursBtn"/>
+	<mx:TextInput x="16" y="151" width="121" text="Search Responsable" id="responsableTextInput"/>
+	<mx:List x="145" y="150" height="114" width="162" id="responsableList" labelFunction="getLabelResp" click="setResponsable()"></mx:List>
+	<mx:Button x="16" y="181" label="Get Responsable" id="responsableBtn" click="getResp()"/>
+	<mx:Text x="51" y="113" text="Responsable:"/>
+	
+	<mx:Text x="145" y="113" text="Select a responsable" width="162" id="setResponsableText"/>
+	
+	<mx:TabBar id="selectTabBar" dataProvider="selectStack" enabled="true" x="322" y="25" width="330"/>
+	
+	
+	<mx:ViewStack x="322" y="70" id="selectStack" resizeToContent="true">
+		
+		<mx:Canvas id="setFormationInterface" label="Formation">
+			<mx:Text text="Formation Type:" y="12" x="0"/>
+			<mx:Text x="105" y="5" width="215" height="52" text="Click Get Formations" id="setFormationText"/>
+			<mx:Button x="0" y="60" label="Get Formations" click="getFormation()"/>
+			<mx:List id="formationList" labelFunction="getLabelFormation" change="setFormation()" x="120" y="60" height="135" width="200"></mx:List>
+		</mx:Canvas>
+		<mx:Canvas id="setMentionInterface" label="Mention">
+			<mx:Text x="82" y="4" text="Select a mention" width="240" id="setMentionText" height="46"/>
+			<mx:Text y="11" x="20" text="Mention:"/>
+			<mx:TextInput x="-1" y="53" width="120" text="Search Mention" id="mentionTextInput"/>
+			<mx:Button x="19" y="84" label="Get Mentions" id="mentionBtn" click="getMention()"/>
+			<mx:List x="122" y="53" height="143" width="200" id="mentionList" labelFunction="getLabelMention" click="setMention()"></mx:List>
+		</mx:Canvas>
+		<mx:Canvas id="setSpecializationInterface" label="Specialization">
+			<mx:Text text="Specialization:" y="10" x="0"/>
+			<mx:Text text="Select a Specialization" width="228" id="setSpecializationText" height="46" x="94" y="6"/>
+			<mx:TextInput width="120" text="Search Specialization" id="specializationTextInput" y="55" x="9"/>
+			<mx:Button label="Get Specialization" id="specializationBtn" click="getSpecialization()" x="3" y="85"/>
+			<mx:List x="133" y="55" height="139" width="200" id="specializationList" labelFunction="getLabelSpecialization" click="setSpecialization()"></mx:List>
+		</mx:Canvas>
+
+			
+	</mx:ViewStack>
+	<mx:Button x="322" y="48" label="Previous" width="160" click="previous()"/>
+	<mx:Button x="484" y="48" label="Next" width="168" click="next()"/>
+	<mx:Text x="16" y="24" text="Parcours Code:"/>
+	<mx:Text x="16" y="65" text="Parcours Title:"/>
+	
+	
+	
+	
+	
+	
+</mx:Canvas>

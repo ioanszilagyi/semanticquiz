@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="500" height="400" borderColor="#7FA5B9" cornerRadius="8" initialize="showButton();" title="Preview Question ...">
+<mx:Script>
+	<![CDATA[
+		import mx.controls.Alert;
+		import mx.events.CloseEvent;
+		public function showButton():void
+		{
+			//Alert.show("OK");
+			this.showCloseButton = true;
+		}
+	]]>
+</mx:Script>
+</mx:TitleWindow>

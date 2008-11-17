@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	creationComplete="init();"
+	label="New Group">
+	
+	<mx:Script source="../../../forms_actionscript/secretar/NewGroups.as" />
+	
+	<mx:Label x="0" y="0" text="Group Title"/>
+	<mx:Label x="10" y="108" text="Year"/>
+	<mx:Label x="10" y="166" text="Description"/>
+	<mx:TextInput x="81" y="0" text="Title" id="title"/>
+	<mx:RadioButtonGroup id="radiogroup1"/>
+	<mx:RadioButton x="366" y="48" label="Parcours" groupName="partOf"/>
+	<mx:RadioButton x="187" y="48" label="Specialisation" groupName="partOf"/>
+	<mx:RadioButton x="10" y="48" label="Mention" groupName="partOf"/>
+	<mx:ComboBox x="366" y="78" id="parcours" labelFunction="getLabelParcours"></mx:ComboBox>
+	<mx:ComboBox x="187" y="78" id="specialization" labelFunction="getLabelSpecialization"></mx:ComboBox>
+	<mx:ComboBox x="10" y="78" id="mention" labelFunction="getLabelMention"></mx:ComboBox>
+	<mx:ComboBox x="10" y="136" id="mention0"></mx:ComboBox>
+	<mx:TextArea x="10" y="190" width="321" height="76" id="description"/>
+	<mx:Button x="10" y="278" label="New Group"/>
+
+</mx:Canvas>

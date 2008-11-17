@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="Create Quiz"
+	width="800" height="600" creationComplete="init();" 
+	backgroundColor="#7FA5B9" 
+	backgroundAlpha="0.0" 
+	xmlns:ns="fr.semantic_learning.semquiz.utils.*">
+	<ns:SearchCombo 
+		id="subsectiune" 
+		labelFunction="getSubsectionLabel" 
+		caseSensitiveSearching="false"
+		change="getDomainQuestion();" editable="{search_sec.selected}" rowCount="3"
+		prompt="select subsection" horizontalCenter="283" verticalCenter="-171" 
+		width="145" height="22" maxHeight="100" fontFamily="Arial" fontSize="12" 
+		fontWeight="normal" borderColor="#F0F0F0" themeColor="#009DFF" cornerRadius="5">
+	</ns:SearchCombo>
+	<ns:SearchCombo 
+		id="competence" 
+		labelFunction="getSubsectionCompetence" 
+		editable="{search_comp.selected}"
+		prompt="select competence" 
+		change="getCompetencesQuestion();" 
+		rowCount="3" enabled="false" 
+		horizontalCenter="98" verticalCenter="-171" width="145" height="22" maxHeight="100"
+		fontStyle="normal" fontWeight="normal" fontFamily="Arial" fontSize="12"
+		alpha="1.0" borderColor="#F0F0F0" cornerRadius="5" themeColor="#009CFF">
+	</ns:SearchCombo>	
+	<mx:RadioButton 
+		click="activate_com(event);" id="competence_rad" toolTip="select for validate" 
+		horizontalCenter="187" verticalCenter="-171" width="20" height="20"/>
+	<mx:RadioButton 
+		click="activate_dom(event);" selected="true" id="domain_rad" toolTip="select for validate" 
+		verticalCenter="-171" width="20" height="20" horizontalCenter="372"/>
+	<mx:TextArea 
+		selectable="false" editable="false" width="350" height="50" backgroundColor="#FFFFFF" 
+		backgroundAlpha="0.8" horizontalCenter="201" verticalCenter="-244" id="display" 
+		wordWrap="true" cornerRadius="5" fontSize="14" fontFamily="Arial"/>
+	<mx:HRule x="426" y="81.6" width="350" height="15.900001" strokeWidth="1" strokeColor="#FFFFFF"/>
+	<mx:HRule x="22.000004" y="90.15" width="350" height="15.900001" strokeWidth="1" strokeColor="#FFFFFF"/>
+	<mx:VRule x="398" y="63" strokeWidth="2" width="4" height="521.9" strokeColor="#FFFFFF"/>
+	<mx:HBox 
+		width="756.9355" height="458.25" borderStyle="solid" borderColor="#FFFFFF" alpha="1.0" 
+		backgroundAlpha="1.0" borderThickness="0" horizontalGap="55" horizontalAlign="center" 
+		verticalAlign="bottom" y="125" horizontalCenter="0">
+	<ns:DragSelectList
+		labelFunction="getSelectedLabel" contextMenu="{newContMenu}"
+		dragEnabled="true" itemRollOver="lastRollOverIndex = event.rowIndex"
+		dragMoveEnabled="true" 
+		dropEnabled="true"
+		allowMultipleSelection="true"
+		buttonMode="true"
+		id="selected_questions"
+		itemRenderer="fr.semantic_learning.semquiz.utils.CheckBoxControlList" 
+		width="350"
+		height="458" 
+		cornerRadius="5" >
+	</ns:DragSelectList>
+	<ns:DragSelectList
+		id="all_question" change="topSelectWeight();"
+		itemRenderer="fr.semantic_learning.semquiz.utils.CheckBoxControlList"
+		labelFunction="getQuestionLabel"
+		allowMultipleSelection="true" 
+		buttonMode="true" contextMenu="{newContMenu}"
+		dropEnabled="true" itemRollOver="lastRollOverIndex = event.rowIndex"
+		dragEnabled="true"
+		dragMoveEnabled="true"
+		width="350" 
+		height="363.0645" 
+		cornerRadius="5">
+	</ns:DragSelectList>
+	</mx:HBox>
+	<mx:VRule strokeWidth="1" width="4" strokeColor="#FFFFFF" height="119" x="599" y="95.95"/>
+	<mx:CheckBox 
+		label="Search Competence" 
+		id="search_comp" enabled="false"
+		horizontalCenter="89" verticalCenter="-195" fontFamily="Arial" fontSize="10" textAlign="left"/>
+	<mx:CheckBox 
+		enabled="true" label="Search Subection" 
+		id="search_sec" horizontalCenter="267" verticalCenter="-195" 
+		fontFamily="Arial" fontSize="10" textAlign="left" textDecoration="normal"/>
+	<mx:Script>
+		<![CDATA[
+			import fr.semantic_learning.semquiz.valueobjects.StructureCompetence;
+			import fr.semantic_learning.semquiz.forms_actionscript.student.BuildDynamicallyComponents;
+			import fr.semantic_learning.semquiz.forms.prof.PreviewWindow;
+			import fr.semantic_learning.semquiz.valueobjects.StructureSubsection;
+			import flash.utils.getTimer;
+			import fr.semantic_learning.semquiz.valueobjects.StructureDisciplineDomain;
+			import fr.semantic_learning.semquiz.valueobjects.StructureDisciplineSection;
+			import fr.semantic_learning.semquiz.valueobjects.StructureQuestion;
+			import fr.semantic_learning.semquiz.commands.AllCommands;
+			import fr.semantic_learning.events.EventCommandFlex;
+			import fr.semantic_learning.semquiz.CentralComm;
+			import fr.semantic_learning.semquiz.valueobjects.StructureQuiz;
+			import fr.semantic_learning.semquiz.valueobjects.StructureQuestionVariants;
+			
+			
+			
+			import mx.controls.menuClasses.MenuBarItem;
+			import mx.events.MenuEvent;
+			import mx.core.*;
+			import mx.managers.DragManager;
+			import mx.events.*;
+			import mx.messaging.management.Attribute;
+			import mx.rpc.events.*;
+			import mx.collections.*;
+			import mx.controls.*;
+			import mx.effects.easing.*;
+			import fr.semantic_learning.semquiz.forms.prof.CreateQuizInfo;
+			import mx.managers.PopUpManager;
+			import mx.containers.TitleWindow;
+			import mx.events.ItemClickEvent;
+			
+			
+			[Bindable] public var newContMenu:ContextMenu;
+			private var myPopUpHelp:TitleWindow;
+			private var myPopUpPreview:TitleWindow;
+			
+			public var theQuestion1:StructureQuestion = new StructureQuestion();
+	
+	      	[Embed(source="/pngIcons/new-16x16.png")]		
+	        [Bindable] public var newButtonIcon:Class;
+	        [Embed(source="/pngIcons/floppy-16x16.png")]		
+	        [Bindable] public var saveButtonIcon:Class;
+	       	[Embed(source="/pngIcons/help-16x16.png")]		
+	        [Bindable] public var helpButtonIcon:Class;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//					These function are used for obtain	.text or .title									//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////		        
+	        
+      		private function getSelectedLabel(item:StructureQuestion):String
+            {
+            	return item.text;
+      		}
+      		private function getSubsectionLabel(item:StructureSubsection):String
+      		{
+      			return item.title;
+      		}
+      		private function getSubsectionCompetence(item:StructureCompetence):String
+      		{
+      			return item.title;
+      		}
+      		private function getQuestionLabel(item:StructureQuestion):String
+            {
+            	return item.text;
+      		}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//					Used for radio button control for subsection comboBox								//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+			
+			private function activate_dom(event:Event):void
+			{
+					subsectiune.enabled = true;
+					search_sec.enabled = true;
+					competence.enabled = false;
+					search_comp.enabled = false;
+			}
+			
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//					Used for radio button control for competence comboBox								//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+			
+			private function activate_com(event:Event):void
+			{
+					subsectiune.enabled = false;
+					search_sec.enabled = false;
+					competence.enabled = true;
+					search_comp.enabled = true;
+			}
+			
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	-init(); Functions contents:																		//
+//			- init ListEvent.ITEM_ROLL_OVER used for obtain list contets without to click on the item	//
+//			- SELECT_SUBSECTION, SUBSECTION_QUESTIONS, SELECT_COMPETENCE, SELECT_COMPETENCE, used		//
+//			  for display the informations																//
+//			- ContextMenuItem - used for create the Preview function  							 		//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+			
+			private function init():void
+			{
+				all_question.addEventListener(ListEvent.ITEM_ROLL_OVER, mouseListQuestion);
+				selected_questions.addEventListener(ListEvent.ITEM_ROLL_OVER, mouseListSelected);
+
+			 	CentralComm.app = Application.application as main;
+
+				this.addEventListener(AllCommands.SELECT_SUBSECTION, displayQuiz_domain);
+				this.addEventListener(AllCommands.SUBSECTION_QUESTIONS, displayQuiz_question);
+				this.addEventListener(AllCommands.SELECT_COMPETENCE, displayQuiz_competence);
+				//this.addEventListener(AllCommands.Se.SELECT_COMPETENCE, displayQuiz_competenceQuestion);
+					
+				var menuRightMouse:ContextMenuItem = new ContextMenuItem("Preview", true);
+				menuRightMouse.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, mouseMenuItemSelect);
+				
+				newContMenu = new ContextMenu();
+				newContMenu.hideBuiltInItems();
+				newContMenu.customItems = [menuRightMouse];
+
+							
+			}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//					Used for loading the preview when the item is selected								//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+           
+            private function mouseMenuItemSelect(evt:ContextMenuEvent):void
+            {
+            	var obj:StructureQuestion = theQuestion1;
+             	if(all_question.selectedItem != null)
+            		{
+            			showPopUpPreview(obj);
+            		}
+            	else if(selected_questions.selectedItem != null)
+            		{
+            			showPopUpPreview(obj);
+            		}	
+
+            }
+            
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//These functions are used to recive all questions and competences for a selectedItem from comboBOXs	//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+            
+            private function getDomainQuestion():void
+            {
+            	var getQuestions:EventCommandFlex = new EventCommandFlex(AllCommands.SUBSECTION_QUESTIONS, 
+            	subsectiune.dataProvider[subsectiune.selectedIndex].id);
+            	CentralComm.app.dispatchEvent(getQuestions);
+            }
+            
+            private function getCompetencesQuestion():void
+            {
+            	var getCompetences:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_COMPETENCE, 
+            	competence.dataProvider[competence.selectedIndex].id);
+            	CentralComm.app.dispatchEvent(getCompetences);
+            }
+            
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//		These functions are used to display all questions and competences into ListBox					//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+            
+            private function displayQuiz_question(event:EventCommandFlex):void
+            {
+            	all_question.dataProvider = event.args as Array;
+            }
+       		
+      		private function displayQuiz_competenceQuestion(event:EventCommandFlex):void
+      		{
+      			//all_question.dataProvider = event.args as Array;
+      		}
+            
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//		These functions are used to display subsections and competences into comboBox					//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+            
+            private function displayQuiz_domain(event:EventCommandFlex):void
+ 	        {
+               	subsectiune.dataProvider = event.args as Array;
+            }
+            private function displayQuiz_competence(event:EventCommandFlex):void
+            {
+            	competence.dataProvider = event.args as Array;
+            }
+            
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//				This function is used to CreateQuizInfo													//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+
+			private function showPopUpHelp():void
+			{
+				myPopUpHelp = PopUpManager.createPopUp(this, CreateQuizInfo, true) as TitleWindow;
+				PopUpManager.centerPopUp(myPopUpHelp);
+				myPopUpHelp.addEventListener("close", closePopUpHelp);
+			}
+			
+			private function closePopUpHelp(event:Event):void
+			{
+				PopUpManager.removePopUp(myPopUpHelp);
+			}
+			
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//				This function is used to PreviewWindow													//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+			
+			private function showPopUpPreview(obj:StructureQuestion):void
+			{
+				myPopUpPreview = PopUpManager.createPopUp(this, PreviewWindow, true) as TitleWindow ;
+				PopUpManager.centerPopUp(myPopUpPreview);
+				myPopUpPreview.addEventListener("close", closePopUpPreview);
+				//var xprev:BuildDynamicallyComponents = new BuildDynamicallyComponents(myPopUpPreview, obj, true);
+			}
+			
+			private function closePopUpPreview(event:Event):void
+			{
+				PopUpManager.removePopUp(myPopUpPreview);
+			}			
+			
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//				Functions for display questions when the mouse roll over the listBox					//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+            
+            private function mouseListQuestion(event:ListEvent):void
+            {
+            	display.styleName = "myDisplayMouseRoll";
+            	display.htmlText = all_question.dataProvider[event.rowIndex].text;
+            }
+            private function mouseListSelected(event:ListEvent):void
+            {
+            	display.styleName = "myDisplaySelect";
+             	display.htmlText = selected_questions.dataProvider[event.rowIndex].text;
+            }
+            private function topSelectWeight():void
+            {
+            	display.styleName = "myDisplayMouseRoll";
+            	display.htmlText = all_question.selectedItem.text;
+            }
+       
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	-save_SelectedQuiz(); Function contents:															//
+//			- send the selected questions, quiz title, language, author,  into saveQuizStruct			//
+//			- create a new quiz																			//
+//			- call showPopUpHelp(); function 													 		//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            private function save_SelectedQuiz(event:ItemClickEvent):void
+            {
+            	var button_Bar:String = event.label;
+            	if(button_Bar == "Save")
+            	{
+            		if (quizTitle.text != "")
+            		{
+            			var saveQuizStruct:StructureQuiz = new StructureQuiz();
+            			saveQuizStruct.title = quizTitle.text;
+            			saveQuizStruct.language = CentralComm.currentUser.language;
+            			saveQuizStruct.author = CentralComm.currentUser.id;
+            			/*Alert.show("\n"+saveQuizStruct.title+"\n"+saveQuizStruct.language+"\n"
+            			+saveQuizStruct.author+"\n"+selected_questions.dataProvider[0].id);*/
+              	
+              			var question:Array = new Array(); 
+              	
+              			for each (var item:StructureQuestion in selected_questions.dataProvider)
+              			{
+              				question.push(item.id); 
+              			}
+		 		
+		 				saveQuizStruct.questions = question;
+				
+            			var eventstruct:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_QUIZ, 
+            			saveQuizStruct);
+						CentralComm.app.dispatchEvent(eventstruct);
+
+						/*Alert.show("\n"+saveQuizStruct.title+"\n"+saveQuizStruct.date+"\n"
+						+saveQuizStruct.language+"\n"+saveQuizStruct.author+"\n"+question.toString());*/
+            		}
+            		else
+            		{
+            			Alert.show("Please match the Quiz Title area!");
+            		}
+            	}
+            	else if (button_Bar == "New")
+            	{
+            		display.text = "";
+            		quizTitle.text = "";
+            		selected_questions.dataProvider = [];
+            		all_question.dataProvider = [];
+            		subsectiune.dataProvider = [];
+            		competence.dataProvider = [];
+            		
+            		var getDEv:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_SUBSECTION, 
+            		new StructureSubsection());
+            		CentralComm.app.dispatchEvent(getDEv);
+            	
+            		var getCEv:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_COMPETENCE, 
+            		new StructureCompetence());
+            		CentralComm.app.dispatchEvent(getCEv);
+            	}
+             	else if (button_Bar == "Help")
+            	{
+            		showPopUpHelp();
+            	}
+            }
+           
+  		]]>
+	</mx:Script>
+	<mx:Number id="lastRollOverIndex"/>
+	<mx:MenuBar width="350" cornerRadius="10" x="22" y="103" height="22"></mx:MenuBar>
+	<mx:Text 
+		x="27" y="106.05" text="&lt;&lt; Created List ...&gt;&gt;" width="115.25" height="17.9" 
+		fontSize="11" textDecoration="normal" fontStyle="normal" textAlign="left" color="#606060" 
+		fontWeight="normal" fontFamily="Arial" selectable="false"/>
+	<mx:MenuBar x="22" y="44.5" width="350" cornerRadius="10" height="22"></mx:MenuBar>
+	<mx:MenuBar x="426" y="10" width="350" cornerRadius="10" height="22"></mx:MenuBar>
+	<mx:Text 
+		x="431.95" y="12" text="&lt;&lt;The Question fast view ...&gt;&gt;" width="202.86665" height="17.9" 
+		fontSize="11" textDecoration="normal" fontStyle="normal" textAlign="left" color="#606060" 
+		fontFamily="Arial" fontWeight="normal" selectable="false"/>
+	<mx:Text 
+		x="27" y="47.55" text="&lt;&lt; Quiz Title ...&gt;&gt;" width="115.25" height="17.9" fontSize="11" 
+		textDecoration="normal" fontStyle="normal" textAlign="left" color="#606060" fontWeight="normal" 
+		fontFamily="Arial" selectable="false"/>
+	<mx:Style>
+		.myButtonStyle
+		{
+			corner-radius: 10;
+			fill-colors: grey,#64a4c5
+		}
+		.myDisplayMouseRoll
+		{
+			font-size: 14;
+			font-weight: normal;
+		}
+		.myDisplaySelect
+		{
+			font-size: 14;
+			font-weight: normal;
+			color: red;
+		}
+	</mx:Style>
+	<mx:ButtonBar 
+		horizontalGap="4" buttonStyleName="myButtonStyle"
+		itemClick="save_SelectedQuiz(event);" 
+		toolTipField="toolTip" 
+		width="350" 
+		id="menuDataSimple"
+		height="22" alpha="0.5" fontWeight="normal" fontFamily="Verdana" fontSize="11" themeColor="#FFFFFF" 
+		buttonMode="true" color="white" x="22" y="10" fontStyle="normal" horizontalAlign="left">
+		<mx:dataProvider>
+				<mx:Array>
+					<mx:Object label="New" toolTip="New quiz" icon="{newButtonIcon}"/>
+					<mx:Object label="Save" toolTip="Save quiz" icon="{saveButtonIcon}"/>
+					<mx:Object label="Help" toolTip="Help quiz" icon="{helpButtonIcon}"/>
+				</mx:Array> 
+		</mx:dataProvider>
+	</mx:ButtonBar>
+	<mx:TextInput 
+		width="350" height="25" horizontalCenter="-203" verticalCenter="-221" cornerRadius="5" 
+		id="quizTitle" fontFamily="Arial" fontSize="14" borderStyle="solid" borderThickness="0" 
+		themeColor="#EEEEEE"/>
+	<mx:VRule 
+		height="30" strokeWidth="1" width="5" strokeColor="#FFFFFF" horizontalCenter="-266" 
+		verticalCenter="-278"/>
+	<mx:VRule 
+		height="30" strokeWidth="1" width="5" strokeColor="#FFFFFF" horizontalCenter="-144" 
+		verticalCenter="-279"/>
+</mx:Canvas>
+

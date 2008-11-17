@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="Subsection"
+	initialize="init();">
+	
+	
+	<mx:Script>
+		<![CDATA[
+			import fr.semantic_learning.semquiz.valueobjects.StructureDisciplineSection;
+		import fr.semantic_learning.semquiz.valueobjects.StructureSubsection;
+		
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import fr.semantic_learning.semquiz.CentralComm;
+		import fr.semantic_learning.events.EventCommandFlex;
+		import mx.controls.Alert;
+		import fr.semantic_learning.semquiz.commands.AllCommands;
+		import mx.managers.CursorManager;
+		import mx.core.Application;
+	
+		public function init():void
+		{
+			CentralComm.app = Application.application as main;
+			this.addEventListener(AllCommands.SELECT_SECTION, manageEventSection);
+		}
+		
+		public function getSections():void
+		{
+			var getSection:StructureDisciplineSection = new StructureDisciplineSection(null, sectionTextInput.text);
+			var getSectionsEvent:EventCommandFlex = new EventCommandFlex(AllCommands.SELECT_SECTION, getSection);
+			CentralComm.app.dispatchEvent(getSectionsEvent);
+			CursorManager.setBusyCursor();			
+		}
+
+	
+		public function addNewSubsection():void
+		{
+			if(subsectionTextInput.text == "" || subsectionTextInput.text == "Title")
+			{
+				Alert.show("Specify Title");
+			} else {
+						
+				var newSubsection:StructureSubsection = new StructureSubsection(subsectionTextInput.text, selectedItem.id);
+				var event:EventCommandFlex = new EventCommandFlex(AllCommands.NEW_SUBSECTION ,newSubsection);
+				CentralComm.app.dispatchEvent(event);
+			}
+			
+		}
+		
+		public function manageEventSection(event:EventCommandFlex):void
+		{
+			var arrSections:Array = new Array();
+			arrSections = event.args as Array;
+			
+			partOfSectionList.dataProvider = arrSections;
+			
+			//infoText.text += arrSectionsTitle.toString();
+			CursorManager.removeBusyCursor();
+			
+			
+		}
+		
+		public function getLabel(item:StructureDisciplineSection):String
+		{
+			return "CODE: "+item.cod+" - Title: "+item.title;
+			
+		}
+		
+		[Bindable]
+		public var selectedItem:Object;
+		
+		/* public function selectItem():void
+		{
+			//this.selectedItem=List(event.target).selectedItem
+			this.selectedItem = partOfSectionList.selectedItem;
+		} */
+			
+		]]>
+	</mx:Script>
+	
+	<mx:TextInput id="subsectionTextInput" x="10" y="10" width="200" text="Title"/>
+	<mx:Text x="217" y="10" text="is part Of:"/>
+	
+	<mx:List id="partOfSectionList" labelFunction="getLabel" change="this.selectedItem=List(event.target).selectedItem" x="288" y="119" variableRowHeight="true" wordWrap="true" width="400" height="300"/>
+	
+	<mx:Button x="469" y="89" label="Get Sections" click="getSections();"/>
+	<mx:Button x="10" y="50" label="New Subsection" click="addNewSubsection();"/>
+	<mx:Text x="288" y="9" width="400" id="textSelectedSection" text="CODE: {selectedItem.cod} - Title: {selectedItem.title}"/>
+	<mx:TextInput x="288" y="89" id="sectionTextInput"/>
+	
+	
+	
+</mx:Canvas>
